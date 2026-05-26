@@ -1,4 +1,4 @@
-/// Local rice images bundled in assets (API returns /images/rice/*.jpg for web).
+/// Bundled rice placeholders when API `image_url` is empty or fails to load.
 abstract final class RiceImages {
   RiceImages._();
 
@@ -54,29 +54,17 @@ abstract final class RiceImages {
     return false;
   }
 
-  /// Prefer bundled asset for empty, relative web paths, or broken remote URLs.
+  /// Offline/error fallback only — not for live API `/images/rice/...` paths.
   static bool shouldUseAsset(String url) {
     final u = url.trim();
     if (u.isEmpty) return true;
-    if (assetPathFromUrl(u) != null) return true;
     if (isBundledAssetPath(u)) return true;
     return isBrokenRemoteUrl(u);
   }
 
-  /// Single entry point for widgets and entity parsing.
+  /// Placeholder asset path for widgets when network image fails.
   static String resolveAssetPath(String imageUrl, {String? productName}) {
-    final fromUrl = assetPathFromUrl(imageUrl);
-    if (fromUrl != null) return fromUrl;
     if (isBundledAssetPath(imageUrl)) return imageUrl.trim();
     return forProduct(productName ?? '');
-  }
-
-  /// Normalize API `image_url` when loading products.
-  static String normalizeApiImageUrl(String? url, {String? productName}) {
-    final raw = url?.trim() ?? '';
-    if (shouldUseAsset(raw)) {
-      return resolveAssetPath(raw, productName: productName);
-    }
-    return raw;
   }
 }

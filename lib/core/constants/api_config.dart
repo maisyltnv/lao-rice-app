@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, Tar
 ///   `ClientException: Failed to fetch`.
 /// - **iOS simulator / desktop (non-web)**: `localhost`.
 /// - **Android emulator**: `10.0.2.2` maps to the host machine loopback.
-/// - **Physical device**: pass `--dart-define=API_BASE=http://<your-lan-ip>:8080`
+/// - **Physical device**: pass `--dart-define=API_BASE=http://<your-lan-ip>:8081`
 ///
 /// Do not use `dart:io` [Platform] here — it throws on web (`Platform._operatingSystem`).
 class ApiConfig {
