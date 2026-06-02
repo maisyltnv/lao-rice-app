@@ -10,6 +10,7 @@ import '../../core/theme/app_colors.dart';
 void showTopRightToast(
   BuildContext context,
   String message, {
+  bool isError = false,
   Duration duration = const Duration(seconds: 2),
 }) {
   final overlay = Overlay.of(context, rootOverlay: true);
@@ -18,6 +19,7 @@ void showTopRightToast(
   entry = OverlayEntry(
     builder: (ctx) => _TopRightToastOverlay(
       message: message,
+      isError: isError,
       duration: duration,
       onDone: () => entry.remove(),
     ),
@@ -29,11 +31,13 @@ void showTopRightToast(
 class _TopRightToastOverlay extends StatefulWidget {
   const _TopRightToastOverlay({
     required this.message,
+    required this.isError,
     required this.duration,
     required this.onDone,
   });
 
   final String message;
+  final bool isError;
   final Duration duration;
   final VoidCallback onDone;
 
@@ -112,7 +116,11 @@ class _TopRightToastOverlayState extends State<_TopRightToastOverlay>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle_rounded, size: 18, color: AppColors.success),
+                    Icon(
+                      widget.isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
+                      size: 18,
+                      color: widget.isError ? AppColors.error : AppColors.success,
+                    ),
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(

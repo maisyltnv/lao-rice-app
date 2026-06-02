@@ -9,6 +9,7 @@ import '../../../domain/entities/banner_entity.dart';
 import '../../providers/banners_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
+import '../../widgets/brand_logo.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/promo_banner.dart';
@@ -271,16 +272,7 @@ class _HomeHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.heroGradient,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: AppColors.softShadow,
-                  ),
-                  child: const Icon(Icons.rice_bowl_rounded, color: Colors.white, size: 24),
-                ),
+                const BrandLogo(size: 48, showShadow: true),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(

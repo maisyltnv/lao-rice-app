@@ -1,5 +1,6 @@
 import '../../core/constants/rice_images.dart';
 import '../../core/utils/api_media_url.dart';
+import '../../core/utils/lak_amount.dart';
 
 class ProductEntity {
   const ProductEntity({
@@ -45,7 +46,7 @@ class ProductEntity {
       imageUrl: _imageUrlFromApi(j['image_url'] as String?, productName: name),
       category: categoryName,
       categoryId: categoryId,
-      finalPriceLak: (j['final_price_lak'] as num?)?.toDouble() ?? 0,
+      finalPriceLak: LakAmount.normalize(j['final_price_lak'] as num?),
       sourceUrl: j['source_url'] as String? ?? '',
     );
   }

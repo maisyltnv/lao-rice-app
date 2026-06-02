@@ -1,3 +1,5 @@
+import '../../core/utils/lak_amount.dart';
+
 class ShippingQuoteEntity {
   const ShippingQuoteEntity({
     required this.subtotalLak,
@@ -15,11 +17,11 @@ class ShippingQuoteEntity {
 
   factory ShippingQuoteEntity.fromJson(Map<String, dynamic> j) {
     return ShippingQuoteEntity(
-      subtotalLak: (j['subtotal_lak'] as num?)?.toDouble() ?? 0,
-      shippingFeeLak: (j['shipping_fee_lak'] as num?)?.toDouble() ?? 0,
-      totalAmountLak: (j['total_amount_lak'] as num?)?.toDouble() ?? 0,
+      subtotalLak: LakAmount.normalize(j['subtotal_lak'] as num?),
+      shippingFeeLak: LakAmount.normalize(j['shipping_fee_lak'] as num?),
+      totalAmountLak: LakAmount.normalize(j['total_amount_lak'] as num?),
       freeShippingApplied: j['free_shipping_applied'] as bool? ?? false,
-      amountUntilFreeShippingLak: (j['amount_until_free_shipping_lak'] as num?)?.toDouble(),
+      amountUntilFreeShippingLak: LakAmount.normalizeNullable(j['amount_until_free_shipping_lak'] as num?),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'order_item_entity.dart';
+import '../../core/utils/lak_amount.dart';
 
 class OrderEntity {
   const OrderEntity({
@@ -47,9 +48,9 @@ class OrderEntity {
     return OrderEntity(
       id: (j['id'] as num).toInt(),
       orderNumber: j['order_number'] as String? ?? '#${j['id']}',
-      totalAmountLak: (j['total_amount_lak'] as num?)?.toDouble() ?? 0,
-      subtotalLak: (j['subtotal_lak'] as num?)?.toDouble() ?? 0,
-      shippingFeeLak: (j['shipping_fee_lak'] as num?)?.toDouble() ?? 0,
+      totalAmountLak: LakAmount.normalize(j['total_amount_lak'] as num?),
+      subtotalLak: LakAmount.normalize(j['subtotal_lak'] as num?),
+      shippingFeeLak: LakAmount.normalize(j['shipping_fee_lak'] as num?),
       status: j['status'] as String? ?? '',
       paymentMethod: j['payment_method'] as String? ?? '',
       paymentReceiptUrl: j['payment_receipt_url'] as String? ?? '',

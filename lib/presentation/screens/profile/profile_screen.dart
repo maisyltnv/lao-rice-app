@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/api_config.dart';
+import '../../widgets/brand_logo.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../data/datasources/remote/api_service.dart';
@@ -48,15 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Row(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.spa_rounded, color: Colors.white, size: 30),
-              ),
+              const BrandLogo(size: 56),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
