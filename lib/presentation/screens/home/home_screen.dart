@@ -12,6 +12,7 @@ import '../../providers/catalog_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/promo_banner.dart';
+import '../../widgets/top_right_toast.dart';
 import '../scan/qr_scan_screen.dart';
 import 'product_detail_screen.dart';
 
@@ -215,12 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       onAddToCart: () {
                         context.read<CartProvider>().add(p);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('ເພີ່ມ "${p.name}" ໃສ່ກະຕ່າແລ້ວ'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        showTopRightToast(context, 'ເພີ່ມ "${p.name}" ໃສ່ກະຕ່າແລ້ວ');
                       },
                     );
                   },
