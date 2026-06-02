@@ -9,9 +9,11 @@ import '../../../domain/entities/banner_entity.dart';
 import '../../providers/banners_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
+import '../../widgets/brand_logo.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/promo_banner.dart';
+import '../../widgets/top_right_toast.dart';
 import '../scan/qr_scan_screen.dart';
 import 'product_detail_screen.dart';
 
@@ -215,12 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       onAddToCart: () {
                         context.read<CartProvider>().add(p);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('ເພີ່ມ "${p.name}" ໃສ່ກະເປົາແລ້ວ'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
+                        showTopRightToast(context, 'ເພີ່ມ "${p.name}" ໃສ່ກະຕ່າແລ້ວ');
                       },
                     );
                   },
@@ -275,16 +272,7 @@ class _HomeHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.heroGradient,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: AppColors.softShadow,
-                  ),
-                  child: const Icon(Icons.rice_bowl_rounded, color: Colors.white, size: 24),
-                ),
+                const BrandLogo(size: 48, showShadow: true),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(

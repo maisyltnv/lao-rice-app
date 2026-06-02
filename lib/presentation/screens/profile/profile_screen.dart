@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/api_config.dart';
+import '../../widgets/brand_logo.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../data/datasources/remote/api_service.dart';
@@ -48,15 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Row(
             children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.spa_rounded, color: Colors.white, size: 30),
-              ),
+              const BrandLogo(size: 56),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
@@ -113,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: 'ວິທີໃຊ້ງານ',
           child: Column(
             children: [
-              _StepRow(number: '1', text: 'ເລືອກສິນຄ້າ ແລະ ເພີ່ມໃສ່ກະເປົາ'),
+              _StepRow(number: '1', text: 'ເລືອກສິນຄ້າ ແລະ ເພີ່ມໃສ່ກະຕ່າ'),
               _StepRow(number: '2', text: 'ຊຳລະເງິນ — ບໍ່ຕ້ອງເຂົ້າສູ່ລະບົບ'),
               _StepRow(number: '3', text: 'ຕິດຕາມຄຳສັ່ງຊື້ດ້ວຍເບີໂທ'),
             ],

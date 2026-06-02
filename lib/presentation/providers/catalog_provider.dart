@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../../core/constants/rice_images.dart';
 import '../../core/utils/product_image_url_resolver.dart';
 import '../../data/datasources/remote/api_service.dart';
 import '../../domain/entities/category_entity.dart';
@@ -109,10 +108,7 @@ class CatalogProvider extends ChangeNotifier {
     final urls = products
         .map((p) => p.imageUrl)
         .where(
-          (u) =>
-              u.trim().isNotEmpty &&
-              !RiceImages.isBundledAssetPath(u) &&
-              !RiceImages.shouldUseAsset(u),
+          (u) => u.trim().isNotEmpty && !ProductImageUrlResolver.isDirectImageUrl(u),
         )
         .toSet();
     await Future.wait(urls.map(ProductImageUrlResolver.shared.resolve));

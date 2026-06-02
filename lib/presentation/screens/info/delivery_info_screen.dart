@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../core/constants/vientiane_delivery.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../widgets/brand_logo.dart';
 
 /// Explains Vientiane-only delivery with GPS at checkout.
 class DeliveryInfoScreen extends StatelessWidget {
@@ -13,7 +14,7 @@ class DeliveryInfoScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Icon(Icons.rice_bowl_rounded, size: 56, color: AppColors.primary),
+        const BrandLogo(size: 56),
         const SizedBox(height: 16),
         Text(
           'ຈັດສົ່ງເຂົ້າສານພາຍໃນນະຄອນຫຼວງວຽງຈັນ',

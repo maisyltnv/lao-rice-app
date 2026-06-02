@@ -36,8 +36,7 @@ class _ProductImageState extends State<ProductImage> {
 
   bool get _useBundledAsset {
     final raw = widget.imageUrl.trim();
-    return RiceImages.shouldUseAsset(raw) ||
-        RiceImages.isBundledAssetPath(raw);
+    return RiceImages.isBundledAssetPath(raw);
   }
 
   @override
@@ -80,13 +79,6 @@ class _ProductImageState extends State<ProductImage> {
     if (mounted) setState(() => _resolving = true);
     final resolved = await ProductImageUrlResolver.shared.resolve(raw);
     if (!mounted) return;
-    if (RiceImages.shouldUseAsset(resolved)) {
-      setState(() {
-        _networkUrl = null;
-        _resolving = false;
-      });
-      return;
-    }
     setState(() {
       _networkUrl = resolved;
       _resolving = false;
