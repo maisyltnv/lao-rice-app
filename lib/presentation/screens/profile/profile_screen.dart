@@ -113,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: 'ວິທີໃຊ້ງານ',
           child: Column(
             children: [
-              _StepRow(number: '1', text: 'ເລືອກສິນຄ້າ ແລະ ເພີ່ມໃສ່ກະເປົາ'),
+              _StepRow(number: '1', text: 'ເລືອກສິນຄ້າ ແລະ ເພີ່ມໃສ່ກະຕ່າ'),
               _StepRow(number: '2', text: 'ຊຳລະເງິນ — ບໍ່ຕ້ອງເຂົ້າສູ່ລະບົບ'),
               _StepRow(number: '3', text: 'ຕິດຕາມຄຳສັ່ງຊື້ດ້ວຍເບີໂທ'),
             ],

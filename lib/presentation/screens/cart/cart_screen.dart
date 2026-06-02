@@ -21,7 +21,7 @@ class CartScreen extends StatelessWidget {
     if (cart.isEmpty) {
       return const EmptyState(
         icon: Icons.shopping_bag_outlined,
-        title: 'ກະເປົາວ່າງ',
+        title: 'ກະຕ່າວ່າງ',
         subtitle: 'ເລືອກສິນຄ້າຈາກຫນ້າຮ້ານ ແລ້ວກົດ + ເພື່ອເພີ່ມ',
       );
     }

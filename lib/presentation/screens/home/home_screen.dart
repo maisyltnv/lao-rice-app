@@ -217,7 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         context.read<CartProvider>().add(p);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('ເພີ່ມ "${p.name}" ໃສ່ກະເປົາແລ້ວ'),
+                            content: Text('ເພີ່ມ "${p.name}" ໃສ່ກະຕ່າແລ້ວ'),
                             duration: const Duration(seconds: 2),
                           ),
                         );

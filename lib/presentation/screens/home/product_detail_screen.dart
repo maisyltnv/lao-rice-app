@@ -62,7 +62,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (product == null) return;
     context.read<CartProvider>().add(product);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ເພີ່ມໃສ່ກະເປົາແລ້ວ')),
+      const SnackBar(content: Text('ເພີ່ມໃສ່ກະຕ່າແລ້ວ')),
     );
   }
 
@@ -212,7 +212,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: FilledButton.icon(
                   onPressed: _addToCart,
                   icon: const Icon(Icons.shopping_bag_rounded),
-                  label: const Text('ເພີ່ມໃສ່ກະເປົາ'),
+                  label: const Text('ເພີ່ມໃສ່ກະຕ່າ'),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: AppColors.primary,
