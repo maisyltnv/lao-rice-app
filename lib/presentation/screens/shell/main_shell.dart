@@ -19,7 +19,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
 
-  static const _titles = ['', 'ກະເປົາຂອງຂ້ອຍ', 'ຄຳສັ່ງຊື້', 'ຈັດສົ່ງ', 'ຕັ້ງຄ່າ'];
+  static const _titles = ['', 'ກະຕ່າຂອງຂ້ອຍ', 'ຄຳສັ່ງຊື້', 'ຈັດສົ່ງ', 'ຕັ້ງຄ່າ'];
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +75,7 @@ class _MainShellState extends State<MainShell> {
               NavigationDestination(
                 icon: _NavIcon(icon: Icons.shopping_bag_outlined, badge: cart.itemCount),
                 selectedIcon: _NavIcon(icon: Icons.shopping_bag_rounded, badge: cart.itemCount, selected: true),
-                label: 'ກະເປົາ',
+                label: 'ກະຕ່າ',
               ),
               const NavigationDestination(
                 icon: Icon(Icons.receipt_long_outlined),

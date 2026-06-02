@@ -17,8 +17,8 @@ class ProductImageUrlResolver {
   static bool isDirectImageUrl(String url) {
     if (url.isEmpty) return false;
     final trimmed = url.trim();
-    // Relative web static paths must use bundled assets, not Image.network.
-    if (trimmed.startsWith('/images/')) return false;
+    // Relative API paths are resolved to absolute URLs before [Image.network].
+    if (trimmed.startsWith('/')) return false;
     final lower = trimmed.toLowerCase();
     if (lower.contains('images.unsplash.com')) return true;
     if (lower.contains('/image/upload')) return true;

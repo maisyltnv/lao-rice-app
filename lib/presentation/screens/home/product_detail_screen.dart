@@ -9,6 +9,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../widgets/price_tag.dart';
 import '../../widgets/product_image.dart';
+import '../../widgets/top_right_toast.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   const ProductDetailScreen({
@@ -61,9 +62,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final product = _product;
     if (product == null) return;
     context.read<CartProvider>().add(product);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('ເພີ່ມໃສ່ກະເປົາແລ້ວ')),
-    );
+    showTopRightToast(context, 'ເພີ່ມໃສ່ກະຕ່າແລ້ວ');
   }
 
   @override
@@ -212,7 +211,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: FilledButton.icon(
                   onPressed: _addToCart,
                   icon: const Icon(Icons.shopping_bag_rounded),
-                  label: const Text('ເພີ່ມໃສ່ກະເປົາ'),
+                  label: const Text('ເພີ່ມໃສ່ກະຕ່າ'),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: AppColors.primary,

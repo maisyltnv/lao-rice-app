@@ -1,3 +1,5 @@
+import '../../core/utils/api_media_url.dart';
+
 class BannerEntity {
   const BannerEntity({
     required this.id,
@@ -37,7 +39,7 @@ class BannerEntity {
       title: j['title'] as String? ?? '',
       subtitle: j['subtitle'] as String? ?? '',
       description: j['description'] as String? ?? '',
-      imageUrl: j['image_url'] as String? ?? '',
+      imageUrl: ApiMediaUrl.resolve(j['image_url'] as String?),
       ctaLabel: j['cta_label'] as String? ?? '',
       linkUrl: j['link_url'] as String? ?? '',
       sortOrder: (j['sort_order'] as num?)?.toInt() ?? 0,
