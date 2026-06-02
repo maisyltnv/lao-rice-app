@@ -13,6 +13,7 @@ import '../../../core/utils/checkout_layout.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/orders_provider.dart';
 import '../../widgets/product_image.dart';
+import '../../widgets/top_right_toast.dart';
 import 'checkout_widgets.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -80,9 +81,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (_deliveryLat == null ||
         _deliveryLng == null ||
         !VientianeDelivery.contains(_deliveryLat!, _deliveryLng!)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ກະລຸນາເລືອກຈຸດສົ່ງພາຍໃນນະຄອນຫຼວງວຽງຈັນ')),
+      showTopRightToast(
+        context,
+        'ກະລຸນາເລືອກຈຸດສົ່ງພາຍໃນນະຄອນຫຼວງວຽງຈັນ',
+        isError: true,
+        duration: const Duration(seconds: 3),
       );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+          );
+        }
+      });
       return false;
     }
     return true;
@@ -121,8 +134,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   bool _validateReceipt() {
     if (_paymentMethod == 'bcel_qr' && _receiptFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ກະລຸນາອັບໂຫຼດຫຼັກຖານການຊຳລະເງິນ (screenshot BCEL)')),
+      showTopRightToast(
+        context,
+        'ກະລຸນາອັບໂຫຼດຫຼັກຖານການຊຳລະເງິນ (screenshot BCEL)',
+        isError: true,
+        duration: const Duration(seconds: 3),
       );
       return false;
     }
