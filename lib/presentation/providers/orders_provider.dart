@@ -42,6 +42,41 @@ class OrdersProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loadMyOrders({
+    required String accessToken,
+    bool refresh = true,
+  }) async {
+    if (refresh) {
+      _page = 1;
+      _orders = const [];
+    }
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final result = await _repository.fetchMyOrders(
+        accessToken: accessToken,
+        page: _page,
+        limit: 10,
+      );
+      _orders = refresh ? result.items : [..._orders, ...result.items];
+      _hasNext = result.hasNext;
+      _error = null;
+    } catch (e) {
+      _error = e is ApiException ? e.messageOrBody : e.toString();
+      if (refresh) _orders = const [];
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMoreMyOrders(String accessToken) async {
+    if (!_hasNext || _loading) return;
+    _page += 1;
+    await loadMyOrders(accessToken: accessToken, refresh: false);
+  }
+
   Future<void> searchByPhone(String phone, {bool refresh = true}) async {
     final trimmed = phone.trim();
     if (trimmed.isEmpty) return;
@@ -85,6 +120,7 @@ class OrdersProvider extends ChangeNotifier {
   }
 
   Future<OrderEntity?> checkout({
+    required String accessToken,
     required List<CartItemEntity> cartItems,
     required String recipientName,
     required String phone,
@@ -100,6 +136,7 @@ class OrdersProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final created = await _repository.placeOrder(
+        accessToken: accessToken,
         paymentMethod: paymentMethod,
         items: cartItems
             .map((e) => (productId: e.product.id, quantity: e.quantity))

@@ -10,8 +10,11 @@ import '../../widgets/delivery_location_picker.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/checkout_layout.dart';
+import '../../../core/utils/lak_currency_formatter.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/orders_provider.dart';
+import '../auth/phone_login_screen.dart';
 import '../../widgets/product_image.dart';
 import '../../widgets/top_right_toast.dart';
 import 'checkout_widgets.dart';
@@ -45,11 +48,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      final auth = context.read<AuthProvider>();
+      if (!auth.isSignedIn) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(builder: (_) => const PhoneLoginScreen()),
+        );
+        return;
+      }
       final orders = context.read<OrdersProvider>();
       final cart = context.read<CartProvider>();
       await orders.loadSavedPhone();
       if (!mounted) return;
-      if (orders.phone != null) _phone.text = orders.phone!;
+      final savedPhone = auth.phone ?? orders.phone;
+      if (savedPhone != null && savedPhone.isNotEmpty) {
+        _phone.text = savedPhone;
+      }
+      if (auth.recipientName.isNotEmpty && _name.text.isEmpty) {
+        _name.text = auth.recipientName;
+      }
+      if (auth.addressDetail.isNotEmpty && _address.text.isEmpty) {
+        _address.text = auth.addressDetail;
+      }
+      if (auth.hasDeliveryPin && _deliveryLat == null) {
+        setState(() {
+          _deliveryLat = auth.deliveryLatitude;
+          _deliveryLng = auth.deliveryLongitude;
+        });
+      }
       await orders.refreshShippingQuote(cart.subtotalLak);
       if (mounted) setState(() => _quoteLoading = false);
     });
@@ -158,7 +183,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       receiptBytes = _receiptPreviewBytes ?? await _receiptFile!.readAsBytes();
       receiptName = _receiptFile!.name;
     }
+    final auth = context.read<AuthProvider>();
+    final token = auth.token;
+    if (token == null || token.isEmpty) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      showTopRightToast(context, 'ກະລຸນາເຂົ້າລະບົບກ່ອນສັ່ງຊື້', isError: true);
+      return;
+    }
     final created = await orders.checkout(
+      accessToken: token,
       cartItems: cart.items,
       recipientName: _name.text.trim(),
       phone: _phone.text.trim(),
@@ -174,6 +208,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     if (created != null) {
       cart.clear();
+      try {
+        await auth.refreshProfile();
+      } catch (_) {
+        /* API saves profile on place order */
+      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('ສັ່ງຊື້ສຳເລັດ ${created.orderNumber}')),
       );

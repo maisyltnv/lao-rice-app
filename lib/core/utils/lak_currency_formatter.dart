@@ -17,3 +17,10 @@ class LakCurrencyFormatter {
 
   static String formatWithSuffix(num amount) => '${format(amount, showSymbol: false)} LAK';
 }
+
+/// Web-style LAK: `1.560.000 ₭`
+String formatLakWeb(num amount) {
+  final core =
+      LakCurrencyFormatter.format(amount, showSymbol: false).replaceAll(',', '.');
+  return '$core ₭';
+}

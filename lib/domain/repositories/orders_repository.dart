@@ -8,12 +8,19 @@ abstract class OrdersRepository {
     int limit = 10,
   });
 
+  Future<({List<OrderEntity> items, int page, int totalPages, bool hasNext})> fetchMyOrders({
+    required String accessToken,
+    int page = 1,
+    int limit = 10,
+  });
+
   Future<ShippingQuoteEntity> fetchShippingQuote(double subtotalLak);
 
   Future<({double shippingFeeLak, double freeShippingMinSubtotalLak})> fetchShippingConfig();
 
-  /// Public checkout — [paymentReceiptBytes] required when [paymentMethod] is `bcel_qr`.
+  /// Authenticated checkout — [accessToken] from phone OTP login.
   Future<OrderEntity> placeOrder({
+    required String accessToken,
     required String paymentMethod,
     required List<({int productId, int quantity})> items,
     required String recipientName,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/rice_images.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/api_media_url.dart';
 import '../../core/utils/product_image_url_resolver.dart';
 
 class ProductImage extends StatefulWidget {
@@ -29,16 +29,6 @@ class _ProductImageState extends State<ProductImage> {
   String? _networkUrl;
   bool _resolving = false;
 
-  String get _assetPath => RiceImages.resolveAssetPath(
-        widget.imageUrl,
-        productName: widget.productName,
-      );
-
-  bool get _useBundledAsset {
-    final raw = widget.imageUrl.trim();
-    return RiceImages.isBundledAssetPath(raw);
-  }
-
   @override
   void initState() {
     super.initState();
@@ -48,14 +38,14 @@ class _ProductImageState extends State<ProductImage> {
   @override
   void didUpdateWidget(ProductImage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.imageUrl != widget.imageUrl ||
-        oldWidget.productName != widget.productName) {
+    if (oldWidget.imageUrl != widget.imageUrl) {
       _resolveUrl();
     }
   }
 
   Future<void> _resolveUrl() async {
-    if (_useBundledAsset) {
+    final raw = widget.imageUrl.trim();
+    if (raw.isEmpty) {
       if (mounted) {
         setState(() {
           _networkUrl = null;
@@ -65,11 +55,21 @@ class _ProductImageState extends State<ProductImage> {
       return;
     }
 
-    final raw = widget.imageUrl.trim();
-    if (ProductImageUrlResolver.isDirectImageUrl(raw)) {
+    final absolute = ApiMediaUrl.resolve(raw);
+    if (absolute.isEmpty) {
       if (mounted) {
         setState(() {
-          _networkUrl = raw;
+          _networkUrl = null;
+          _resolving = false;
+        });
+      }
+      return;
+    }
+
+    if (ProductImageUrlResolver.isDirectImageUrl(absolute)) {
+      if (mounted) {
+        setState(() {
+          _networkUrl = absolute;
           _resolving = false;
         });
       }
@@ -77,7 +77,7 @@ class _ProductImageState extends State<ProductImage> {
     }
 
     if (mounted) setState(() => _resolving = true);
-    final resolved = await ProductImageUrlResolver.shared.resolve(raw);
+    final resolved = await ProductImageUrlResolver.shared.resolve(absolute);
     if (!mounted) return;
     setState(() {
       _networkUrl = resolved;
@@ -96,28 +96,14 @@ class _ProductImageState extends State<ProductImage> {
     );
   }
 
-  Widget _buildAssetImage() {
-    return Image.asset(
-      _assetPath,
-      fit: widget.fit,
-      width: double.infinity,
-      gaplessPlayback: true,
-      errorBuilder: (_, _, _) => _iconPlaceholder(),
-    );
-  }
-
   Widget _buildContent() {
     if (_resolving) {
       return _loadingBox();
     }
 
-    if (_useBundledAsset) {
-      return _buildAssetImage();
-    }
-
     final url = _networkUrl ?? '';
     if (url.isEmpty || !ProductImageUrlResolver.isDirectImageUrl(url)) {
-      return _buildAssetImage();
+      return _noImagePlaceholder();
     }
 
     return Image.network(
@@ -128,7 +114,7 @@ class _ProductImageState extends State<ProductImage> {
         if (progress == null) return child;
         return _loadingBox();
       },
-      errorBuilder: (_, _, _) => _buildAssetImage(),
+      errorBuilder: (_, _, _) => _noImagePlaceholder(),
     );
   }
 
@@ -147,24 +133,17 @@ class _ProductImageState extends State<ProductImage> {
     );
   }
 
-  Widget _iconPlaceholder() {
+  Widget _noImagePlaceholder() {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.accent,
-            AppColors.primary.withValues(alpha: 0.12),
-          ],
-        ),
-      ),
+      color: AppColors.surfaceMuted,
       alignment: Alignment.center,
-      child: Icon(
-        Icons.rice_bowl_rounded,
-        size: 36,
-        color: AppColors.primary.withValues(alpha: 0.55),
+      child: Text(
+        'no image',
+        style: TextStyle(
+          fontSize: 12,
+          color: AppColors.textMuted,
+        ),
       ),
     );
   }

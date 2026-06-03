@@ -4,13 +4,18 @@ import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/cart_provider.dart';
 import '../cart/cart_screen.dart';
-import '../info/delivery_info_screen.dart';
 import '../home/home_screen.dart';
 import '../orders/order_history_screen.dart';
 import '../profile/profile_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
+
+  /// Switch bottom tab from child screens (e.g. profile → cart).
+  static void navigateToTab(BuildContext context, int index) {
+    final state = context.findAncestorStateOfType<_MainShellState>();
+    state?._selectTab(index);
+  }
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -19,7 +24,12 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
 
-  static const _titles = ['', 'ກະຕ່າຂອງຂ້ອຍ', 'ຄຳສັ່ງຊື້', 'ຈັດສົ່ງ', 'ຕັ້ງຄ່າ'];
+  static const _titles = ['', 'ກະຕ່າສິນຄ້າ', 'ຄຳສັ່ງຊື້', 'ບັນຊີ'];
+
+  void _selectTab(int index) {
+    if (index < 0 || index > 3) return;
+    setState(() => _index = index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +40,6 @@ class _MainShellState extends State<MainShell> {
       0 => const HomeScreen(),
       1 => const CartScreen(),
       2 => const OrderHistoryScreen(),
-      3 => const DeliveryInfoScreen(),
       _ => const ProfileScreen(),
     };
 
@@ -61,7 +70,7 @@ class _MainShellState extends State<MainShell> {
           top: false,
           child: NavigationBar(
             selectedIndex: _index,
-            onDestinationSelected: (i) => setState(() => _index = i),
+            onDestinationSelected: _selectTab,
             backgroundColor: Colors.transparent,
             elevation: 0,
             height: 64,
@@ -83,14 +92,9 @@ class _MainShellState extends State<MainShell> {
                 label: 'ຄຳສັ່ງຊື້',
               ),
               const NavigationDestination(
-                icon: Icon(Icons.local_shipping_outlined),
-                selectedIcon: Icon(Icons.local_shipping_rounded),
-                label: 'ຈັດສົ່ງ',
-              ),
-              const NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings_rounded),
-                label: 'ຕັ້ງຄ່າ',
+                icon: Icon(Icons.person_outline_rounded),
+                selectedIcon: Icon(Icons.person_rounded),
+                label: 'ບັນຊີ',
               ),
             ],
           ),

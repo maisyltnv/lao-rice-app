@@ -181,6 +181,80 @@ class ApiService {
     return AuthUserEntity.fromJson(map);
   }
 
+  Future<AuthUserEntity> updateCustomerProfile({
+    required String accessToken,
+    required String recipientName,
+    required String shippingPhone,
+    required String addressDetail,
+    String province = 'ນະຄອນຫຼວງວຽງຈັນ',
+    required double deliveryLatitude,
+    required double deliveryLongitude,
+  }) async {
+    final payload = jsonEncode({
+      'recipient_name': recipientName,
+      'shipping_phone': shippingPhone,
+      'province': province,
+      'address_detail': addressDetail,
+      'delivery_latitude': deliveryLatitude,
+      'delivery_longitude': deliveryLongitude,
+    });
+    final headers = _headers(bearer: accessToken, jsonContentType: true);
+    var res = await _client.put(
+      _uri('/auth/me/profile'),
+      headers: headers,
+      body: payload,
+    );
+    if (res.statusCode == 404) {
+      res = await _client.post(
+        _uri('/auth/me/profile'),
+        headers: headers,
+        body: payload,
+      );
+    }
+    if (res.statusCode != 200) {
+      if (res.statusCode == 404) {
+        throw ApiException(
+          res.statusCode,
+          'API ຍັງບໍ່ມີຟັງຊັນບັນທຶກທີ່ຢູ່ — deploy lao-rice-api ລ່າສຸດ (docker compose up -d --build)',
+        );
+      }
+      throw ApiException(res.statusCode, res.body);
+    }
+    final map = jsonDecode(res.body) as Map<String, dynamic>;
+    return AuthUserEntity.fromJson(map);
+  }
+
+  Future<void> sendPhoneOtp(String phone) async {
+    final res = await _client.post(
+      _uri('/auth/otp/send'),
+      headers: _headers(jsonContentType: true),
+      body: jsonEncode({'phone': phone}),
+    );
+    if (res.statusCode != 200) {
+      throw ApiException(res.statusCode, res.body);
+    }
+  }
+
+  Future<({String token, String username, AuthUserEntity user})> verifyPhoneOtp({
+    required String phone,
+    required String code,
+  }) async {
+    final res = await _client.post(
+      _uri('/auth/otp/verify'),
+      headers: _headers(jsonContentType: true),
+      body: jsonEncode({'phone': phone, 'code': code}),
+    );
+    if (res.statusCode != 200) {
+      throw ApiException(res.statusCode, res.body);
+    }
+    final map = jsonDecode(res.body) as Map<String, dynamic>;
+    final token = map['access_token'] as String? ?? '';
+    final userMap = map['user'] as Map<String, dynamic>? ?? const {};
+    final user = AuthUserEntity.fromJson(userMap);
+    final name = user.username.isNotEmpty ? user.username : phone;
+    return (token: token, username: name, user: user);
+  }
+
   Future<ProductEntity> createProduct(
     String accessToken, {
     required String name,
@@ -264,9 +338,13 @@ class ApiService {
     }
   }
 
-  Future<List<OrderEntity>> fetchMyOrders(String accessToken, {int limit = 100, int offset = 0}) async {
+  Future<({List<OrderEntity> items, int page, int totalPages, bool hasNext})> fetchMyOrders({
+    required String accessToken,
+    int page = 1,
+    int limit = 10,
+  }) async {
     final res = await _client.get(
-      _uri('/orders', {'limit': '$limit', 'offset': '$offset'}),
+      _uri('/orders/mine', {'page': '$page', 'limit': '$limit'}),
       headers: _headers(bearer: accessToken),
     );
     if (res.statusCode == 401) {
@@ -275,17 +353,14 @@ class ApiService {
     if (res.statusCode != 200) {
       throw ApiException(res.statusCode, res.body);
     }
-    try {
-      final decoded = jsonDecode(res.body);
-      if (decoded is List) {
-        return decoded.map((e) => OrderEntity.fromJson(e as Map<String, dynamic>)).toList();
-      }
-      if (decoded is Map<String, dynamic>) {
-        final list = decoded['items'] as List<dynamic>? ?? decoded['orders'] as List<dynamic>? ?? const [];
-        return list.map((e) => OrderEntity.fromJson(e as Map<String, dynamic>)).toList();
-      }
-    } catch (_) {}
-    return const [];
+    final map = jsonDecode(res.body) as Map<String, dynamic>;
+    final raw = map['items'] as List<dynamic>? ?? const [];
+    return (
+      items: raw.map((e) => OrderEntity.fromJson(e as Map<String, dynamic>)).toList(),
+      page: (map['page'] as num?)?.toInt() ?? 1,
+      totalPages: (map['total_pages'] as num?)?.toInt() ?? 1,
+      hasNext: map['has_next'] as bool? ?? false,
+    );
   }
 
   Future<({double shippingFeeLak, double freeShippingMinSubtotalLak})> fetchShippingConfig() async {
@@ -333,8 +408,9 @@ class ApiService {
     );
   }
 
-  /// Public `POST /orders`. Sends multipart when [paymentReceiptBytes] is set (BCEL QR).
+  /// Authenticated `POST /orders`. Sends multipart when [paymentReceiptBytes] is set (BCEL QR).
   Future<OrderEntity> placeOrder({
+    required String accessToken,
     required String paymentMethod,
     required List<({int productId, int quantity})> items,
     required String recipientName,
@@ -357,6 +433,7 @@ class ApiService {
     if (paymentReceiptBytes != null && paymentReceiptBytes.isNotEmpty) {
       final request = http.MultipartRequest('POST', _uri('/orders'));
       request.headers['Accept'] = 'application/json';
+      request.headers['Authorization'] = 'Bearer $accessToken';
       request.fields['payment_method'] = paymentMethod;
       request.fields['items'] = jsonEncode(itemsJson);
       request.fields['shipping'] = jsonEncode(shippingJson);
@@ -378,7 +455,7 @@ class ApiService {
 
     final res = await _client.post(
       _uri('/orders'),
-      headers: _headers(jsonContentType: true),
+      headers: _headers(bearer: accessToken, jsonContentType: true),
       body: jsonEncode({
         'payment_method': paymentMethod,
         'items': itemsJson,

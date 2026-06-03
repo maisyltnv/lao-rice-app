@@ -13,7 +13,6 @@ abstract final class ApiMediaUrl {
     if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
       return trimmed;
     }
-    if (trimmed.startsWith('assets/')) return trimmed;
     final base = ApiConfig.baseUrl.replaceAll(RegExp(r'/+$'), '');
     final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
     return '$base$path';

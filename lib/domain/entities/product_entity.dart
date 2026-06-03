@@ -1,4 +1,3 @@
-import '../../core/constants/rice_images.dart';
 import '../../core/utils/api_media_url.dart';
 import '../../core/utils/lak_amount.dart';
 
@@ -43,7 +42,7 @@ class ProductEntity {
       id: (j['id'] as num).toInt(),
       name: name,
       description: j['description'] as String? ?? '',
-      imageUrl: _imageUrlFromApi(j['image_url'] as String?, productName: name),
+      imageUrl: _imageUrlFromApi(j['image_url'] as String?),
       category: categoryName,
       categoryId: categoryId,
       finalPriceLak: LakAmount.normalize(j['final_price_lak'] as num?),
@@ -51,9 +50,7 @@ class ProductEntity {
     );
   }
 
-  static String _imageUrlFromApi(String? url, {required String productName}) {
-    final fromApi = ApiMediaUrl.resolve(url);
-    if (fromApi.isNotEmpty) return fromApi;
-    return RiceImages.forProduct(productName);
+  static String _imageUrlFromApi(String? url) {
+    return ApiMediaUrl.resolve(url);
   }
 }

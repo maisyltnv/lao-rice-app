@@ -18,6 +18,15 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
+  Future<({List<OrderEntity> items, int page, int totalPages, bool hasNext})> fetchMyOrders({
+    required String accessToken,
+    int page = 1,
+    int limit = 10,
+  }) {
+    return _api.fetchMyOrders(accessToken: accessToken, page: page, limit: limit);
+  }
+
+  @override
   Future<ShippingQuoteEntity> fetchShippingQuote(double subtotalLak) {
     return _api.fetchShippingQuote(subtotalLak);
   }
@@ -29,6 +38,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
 
   @override
   Future<OrderEntity> placeOrder({
+    required String accessToken,
     required String paymentMethod,
     required List<({int productId, int quantity})> items,
     required String recipientName,
@@ -40,6 +50,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
     String? paymentReceiptFilename,
   }) {
     return _api.placeOrder(
+      accessToken: accessToken,
       paymentMethod: paymentMethod,
       items: items,
       recipientName: recipientName,
