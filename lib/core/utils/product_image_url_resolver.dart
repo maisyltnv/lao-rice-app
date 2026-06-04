@@ -11,8 +11,17 @@ class ProductImageUrlResolver {
 
   final http.Client _client;
   static final Map<String, String> _cache = {};
+  static const _userAgent =
+      'Mozilla/5.0 (compatible; LaoRiceShop/1.0; +https://kommodo.ai)';
 
   static final ProductImageUrlResolver shared = ProductImageUrlResolver();
+
+  /// Returns a previously resolved direct image URL, if any.
+  static String? cachedDirectUrl(String url) {
+    final cached = _cache[url.trim()];
+    if (cached != null && isDirectImageUrl(cached)) return cached;
+    return null;
+  }
 
   static bool isDirectImageUrl(String url) {
     if (url.isEmpty) return false;
@@ -39,7 +48,9 @@ class ProductImageUrlResolver {
 
     if (trimmed.contains('kommodo.ai/i/')) {
       final direct = await _resolveKommodoSharePage(trimmed);
-      _cache[trimmed] = direct;
+      if (isDirectImageUrl(direct)) {
+        _cache[trimmed] = direct;
+      }
       return direct;
     }
 
@@ -48,7 +59,12 @@ class ProductImageUrlResolver {
 
   Future<String> _resolveKommodoSharePage(String pageUrl) async {
     try {
-      final res = await _client.get(Uri.parse(pageUrl)).timeout(const Duration(seconds: 12));
+      final res = await _client
+          .get(
+            Uri.parse(pageUrl),
+            headers: const {'User-Agent': _userAgent, 'Accept': 'text/html'},
+          )
+          .timeout(const Duration(seconds: 20));
       if (res.statusCode != 200) return pageUrl;
 
       final body = utf8.decode(res.bodyBytes, allowMalformed: true);

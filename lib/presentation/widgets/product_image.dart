@@ -76,6 +76,17 @@ class _ProductImageState extends State<ProductImage> {
       return;
     }
 
+    final cached = ProductImageUrlResolver.cachedDirectUrl(absolute);
+    if (cached != null) {
+      if (mounted) {
+        setState(() {
+          _networkUrl = cached;
+          _resolving = false;
+        });
+      }
+      return;
+    }
+
     if (mounted) setState(() => _resolving = true);
     final resolved = await ProductImageUrlResolver.shared.resolve(absolute);
     if (!mounted) return;
