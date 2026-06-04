@@ -406,8 +406,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPaymentStep(double total, bool compact) {
     final titleSize = CheckoutLayout.titleFontSize(context);
-    final qrSize = compact ? 140.0 : 180.0;
-
     return Column(
       key: const ValueKey('step_payment'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -453,28 +451,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: GoogleFonts.notoSansLao(fontSize: 13, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                Container(
-                  width: qrSize,
-                  height: qrSize,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.qr_code_2_rounded, size: 64, color: AppColors.textMuted.withValues(alpha: 0.6)),
-                      const SizedBox(height: AppSpacing.sm),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                        child: Text(
-                          'QR Code ຈະປະກົດຫຼັງຢືນຢັນຄຳສັ່ງ',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.notoSansLao(fontSize: 11, color: AppColors.textMuted),
-                        ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  child: Image.asset(
+                    'assets/payment/bcel_lapnet_qr.png',
+                    width: double.infinity,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, _, _) => Container(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      color: AppColors.surface,
+                      child: Icon(
+                        Icons.qr_code_2_rounded,
+                        size: 64,
+                        color: AppColors.textMuted.withValues(alpha: 0.6),
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -541,6 +532,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   child: Image.memory(
                     _receiptPreviewBytes!,
                     height: 120,
+                    width: double.infinity,
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -548,10 +540,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
         ),
-        if (_paymentMethod == 'bcel_qr') ...[
-          const SizedBox(height: AppSpacing.lg),
-          _buildReceiptUploadSection(compact: true),
-        ],
         Text('ສິນຄ້າທີ່ສັ່ງ', style: GoogleFonts.notoSansLao(fontSize: 15, fontWeight: FontWeight.w700)),
         const SizedBox(height: AppSpacing.md),
         ...cart.items.map(
@@ -619,28 +607,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           style: GoogleFonts.notoSansLao(fontSize: 12, color: AppColors.textSecondary),
         ),
         const SizedBox(height: AppSpacing.md),
-        InkWell(
-          onTap: _busy ? null : _pickReceipt,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          child: Container(
+        if (_receiptPreviewBytes != null)
+          Container(
             padding: EdgeInsets.all(compact ? AppSpacing.md : AppSpacing.lg),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
               border: Border.all(color: AppColors.border, width: 2),
               color: AppColors.surfaceMuted,
             ),
-            child: Column(
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
               children: [
-                if (_receiptPreviewBytes != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    child: Image.memory(
-                      _receiptPreviewBytes!,
-                      height: compact ? 100 : 160,
-                      fit: BoxFit.contain,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  child: Image.memory(
+                    _receiptPreviewBytes!,
+                    height: compact ? 120 : 180,
+                    width: double.infinity,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: Material(
+                    color: Colors.black.withValues(alpha: 0.72),
+                    shape: const CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: _busy ? null : _clearReceipt,
+                      customBorder: const CircleBorder(),
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(Icons.close_rounded, size: 18, color: Colors.white),
+                      ),
                     ),
-                  )
-                else ...[
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          InkWell(
+            onTap: _busy ? null : _pickReceipt,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                vertical: compact ? AppSpacing.lg : AppSpacing.xl,
+                horizontal: compact ? AppSpacing.md : AppSpacing.lg,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                border: Border.all(color: AppColors.border, width: 2),
+                color: AppColors.surfaceMuted,
+              ),
+              child: Column(
+                children: [
                   Icon(Icons.upload_file_outlined, size: 40, color: AppColors.textMuted.withValues(alpha: 0.7)),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
@@ -648,23 +671,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     style: GoogleFonts.notoSansLao(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600),
                   ),
                 ],
-                if (_receiptFile != null) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    _receiptFile!.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.notoSansLao(fontSize: 11, color: AppColors.textMuted),
-                  ),
-                  TextButton(
-                    onPressed: _busy ? null : _clearReceipt,
-                    child: const Text('ລຶບຮູບ'),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-        ),
       ],
     );
   }
