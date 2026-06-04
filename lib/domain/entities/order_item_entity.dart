@@ -31,10 +31,45 @@ class OrderItemEntity {
   }
 
   static String _imageUrlFromJson(Map<String, dynamic> j) {
+    final candidates = <String?>[];
     final product = j['product'];
     if (product is Map<String, dynamic>) {
-      return ApiMediaUrl.resolve(product['image_url'] as String?);
+      candidates.add(product['image_url'] as String?);
+      candidates.add(product['imageUrl'] as String?);
     }
-    return ApiMediaUrl.resolve(j['image_url'] as String?);
+    candidates.add(j['image_url'] as String?);
+    candidates.add(j['product_image_url'] as String?);
+
+    for (final raw in candidates) {
+      final resolved = ApiMediaUrl.resolve(raw);
+      if (resolved.isNotEmpty &&
+          !ApiMediaUrl.isPaymentReceiptMediaUrl(resolved)) {
+        return resolved;
+      }
+    }
+    return '';
+  }
+
+  /// Prefer order snapshot; fall back to live catalog [productImageUrl].
+  String effectiveImageUrl({
+    String? productImageUrl,
+    String? orderPaymentReceiptUrl,
+  }) {
+    if (imageUrl.isNotEmpty &&
+        !ApiMediaUrl.isPaymentReceiptMediaUrl(
+          imageUrl,
+          orderPaymentReceiptUrl: orderPaymentReceiptUrl,
+        )) {
+      return imageUrl;
+    }
+    final fromCatalog = productImageUrl?.trim() ?? '';
+    if (fromCatalog.isNotEmpty &&
+        !ApiMediaUrl.isPaymentReceiptMediaUrl(
+          fromCatalog,
+          orderPaymentReceiptUrl: orderPaymentReceiptUrl,
+        )) {
+      return fromCatalog;
+    }
+    return '';
   }
 }

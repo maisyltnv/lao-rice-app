@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'api_media_url.dart';
+
 /// Resolves product image URLs to a direct image file URL when possible.
 ///
 /// Some products store Kommodo *share page* links (`kommodo.ai/i/...`) instead of
@@ -35,6 +37,7 @@ class ProductImageUrlResolver {
       return true;
     }
     if (lower.contains('plain-apac-prod-public.komododecks.com')) return true;
+    if (ApiMediaUrl.isApiHostedImage(trimmed)) return true;
     return false;
   }
 

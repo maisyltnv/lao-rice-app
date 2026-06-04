@@ -7,6 +7,7 @@ import '../cart/cart_screen.dart';
 import '../home/home_screen.dart';
 import '../orders/order_history_screen.dart';
 import '../profile/profile_screen.dart';
+import '../../widgets/whatsapp_chat_fab.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -51,9 +52,26 @@ class _MainShellState extends State<MainShell> {
               title: Text(_titles[_index]),
               backgroundColor: AppColors.background,
             ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 220),
-        child: KeyedSubtree(key: ValueKey(_index), child: body),
+      body: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: KeyedSubtree(key: ValueKey(_index), child: body),
+          ),
+          const Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              left: false,
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.only(top: 8, right: 12),
+                child: WhatsAppChatFab(),
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

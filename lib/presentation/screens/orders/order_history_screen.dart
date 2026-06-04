@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../../core/utils/product_image_url_resolver.dart';
+import '../../../domain/entities/order_entity.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/catalog_provider.dart';
 import '../../providers/orders_provider.dart';
 import '../../widgets/customer_order_card.dart';
 import '../../widgets/empty_state.dart';
@@ -33,7 +36,40 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     if (phone.length < 8) return;
 
     final orders = context.read<OrdersProvider>();
+    final catalog = context.read<CatalogProvider>();
+    if (catalog.products.isEmpty) {
+      await catalog.load();
+    }
     await orders.searchByPhone(phone, refresh: true);
+    if (!mounted) return;
+    await _preloadOrderProductImages(orders.orders, catalog);
+  }
+
+  Future<void> _preloadOrderProductImages(
+    List<OrderEntity> orderList,
+    CatalogProvider catalog,
+  ) async {
+    final urls = <String>{};
+    for (final order in orderList) {
+      for (final item in order.items) {
+        String? catalogUrl;
+        for (final p in catalog.products) {
+          if (p.id == item.productId) {
+            catalogUrl = p.imageUrl;
+            break;
+          }
+        }
+        final url = item.effectiveImageUrl(
+          productImageUrl: catalogUrl,
+          orderPaymentReceiptUrl: order.paymentReceiptUrl,
+        );
+        if (url.isNotEmpty && !ProductImageUrlResolver.isDirectImageUrl(url)) {
+          urls.add(url);
+        }
+      }
+    }
+    if (urls.isEmpty) return;
+    await Future.wait(urls.map(ProductImageUrlResolver.shared.resolve));
   }
 
   Future<void> _refresh() async {

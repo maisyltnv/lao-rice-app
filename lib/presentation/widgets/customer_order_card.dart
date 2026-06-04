@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/lak_currency_formatter.dart';
 import '../../core/utils/order_labels.dart';
 import '../../domain/entities/order_entity.dart';
+import '../providers/catalog_provider.dart';
 import 'image_preview_dialog.dart';
 import 'order_payment_receipt_thumb.dart';
 import 'order_status_chip.dart';
@@ -25,8 +27,17 @@ class _CustomerOrderCardState extends State<CustomerOrderCard> {
 
   OrderEntity get order => widget.order;
 
+  String _catalogProductImageUrl(CatalogProvider catalog, int productId) {
+    if (productId <= 0) return '';
+    for (final p in catalog.products) {
+      if (p.id == productId) return p.imageUrl;
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final catalog = context.watch<CatalogProvider>();
     final itemCount = order.items.fold<int>(0, (s, i) => s + i.quantity);
     final itemsSubtotal = order.items.fold<double>(
       0,
@@ -157,6 +168,7 @@ class _CustomerOrderCardState extends State<CustomerOrderCard> {
             alignment: Alignment.topCenter,
             child: _expanded
                 ? _expandedDetails(
+                    catalog: catalog,
                     itemCount: itemCount,
                     subtotal: subtotal,
                     shipping: shipping,
@@ -182,6 +194,7 @@ class _CustomerOrderCardState extends State<CustomerOrderCard> {
   }
 
   Widget _expandedDetails({
+    required CatalogProvider catalog,
     required int itemCount,
     required double subtotal,
     required double shipping,
@@ -229,13 +242,18 @@ class _CustomerOrderCardState extends State<CustomerOrderCard> {
             ),
             const SizedBox(height: AppSpacing.sm),
             ...order.items.map(
-              (item) => Padding(
+              (item) {
+                final productImageUrl = item.effectiveImageUrl(
+                  productImageUrl: _catalogProductImageUrl(catalog, item.productId),
+                  orderPaymentReceiptUrl: order.paymentReceiptUrl,
+                );
+                return Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TappableImageThumbnail(
-                      imageUrl: item.imageUrl,
+                      imageUrl: productImageUrl,
                       productName: item.productName,
                       previewTitle: item.productName,
                       size: 56,
@@ -271,7 +289,8 @@ class _CustomerOrderCardState extends State<CustomerOrderCard> {
                     ),
                   ],
                 ),
-              ),
+              );
+              },
             ),
           ] else
             Padding(
