@@ -36,6 +36,7 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final isHome = _index == 0;
+    final hideAppBar = isHome || _index == 3;
 
     final body = switch (_index) {
       0 => const HomeScreen(),
@@ -46,7 +47,7 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: isHome
+      appBar: hideAppBar
           ? null
           : AppBar(
               title: Text(_titles[_index]),

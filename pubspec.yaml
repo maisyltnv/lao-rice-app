@@ -43,6 +43,7 @@ dependencies:
   url_launcher: ^6.3.1
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
+  path_provider: ^2.1.5
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -78,6 +79,7 @@ flutter:
     - assets/brand/logo.png
     - assets/brand/app_icon.png
     - assets/payment/bcel_lapnet_qr.png
+    - assets/profile/default_profile.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

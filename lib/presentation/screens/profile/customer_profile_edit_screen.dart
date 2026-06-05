@@ -10,9 +10,11 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/delivery_location_picker.dart';
 import '../../widgets/top_right_toast.dart';
 
-/// ແກ້ໄຂທີ່ຢູ່ຈັດສົ່ງປະຈຳ — ໃຊ້ເຕີມຕອນສັ່ງຊື້ອັດຕະໂນມັດ.
+/// ແກ້ໄຂໂປຣໄຟລ໌ລູກຄ້າ — [basicOnly] ສະແດງແຕ່ຊື່ ແລະ ເບີໂທ.
 class CustomerProfileEditScreen extends StatefulWidget {
-  const CustomerProfileEditScreen({super.key});
+  const CustomerProfileEditScreen({super.key, this.basicOnly = false});
+
+  final bool basicOnly;
 
   @override
   State<CustomerProfileEditScreen> createState() =>
@@ -51,28 +53,38 @@ class _CustomerProfileEditScreenState extends State<CustomerProfileEditScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_lat == null ||
-        _lng == null ||
-        !VientianeDelivery.contains(_lat!, _lng!)) {
-      showTopRightToast(
-        context,
-        'ກະລຸນາເລືອກຈຸດສົ່ງພາຍໃນນະຄອນຫຼວງວຽງຈັນ',
-        isError: true,
-      );
-      return;
+
+    final auth = context.read<AuthProvider>();
+    final lat = widget.basicOnly ? auth.deliveryLatitude : _lat;
+    final lng = widget.basicOnly ? auth.deliveryLongitude : _lng;
+
+    if (!widget.basicOnly) {
+      if (lat == null ||
+          lng == null ||
+          !VientianeDelivery.contains(lat, lng)) {
+        showTopRightToast(
+          context,
+          'ກະລຸນາເລືອກຈຸດສົ່ງພາຍໃນນະຄອນຫຼວງວຽງຈັນ',
+          isError: true,
+        );
+        return;
+      }
     }
 
     setState(() => _saving = true);
     try {
-      await context.read<AuthProvider>().updateCustomerProfile(
+      await auth.updateCustomerProfile(
             recipientName: _name.text.trim(),
             shippingPhone: _phone.text.trim(),
-            addressDetail: _address.text.trim(),
-            deliveryLatitude: _lat!,
-            deliveryLongitude: _lng!,
+            addressDetail: widget.basicOnly ? auth.addressDetail : _address.text.trim(),
+            deliveryLatitude: lat ?? 0,
+            deliveryLongitude: lng ?? 0,
           );
       if (!mounted) return;
-      showTopRightToast(context, 'ບັນທຶກທີ່ຢູ່ຈັດສົ່ງແລ້ວ');
+      showTopRightToast(
+        context,
+        widget.basicOnly ? 'ບັນທຶກໂປຣໄຟລ໌ແລ້ວ' : 'ບັນທຶກທີ່ຢູ່ຈັດສົ່ງແລ້ວ',
+      );
       Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
@@ -88,14 +100,17 @@ class _CustomerProfileEditScreenState extends State<CustomerProfileEditScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
-    final hint = auth.hasSavedShipping
-        ? 'ຂໍ້ມູນນີ້ຈະເຕີມໃຫ້ອັດຕະໂນມັດຕອນສັ່ງຊື້'
-        : 'ບັນທຶກເພື່ອບໍ່ຕ້ອງພິມຊ້ຳ — ຫຼື ຂໍ້ມູນຈາກການສັ່ງຊື້ຈະຖືກບັນທຶກໃຫ້';
+    final basicOnly = widget.basicOnly;
+    final hint = basicOnly
+        ? 'ແກ້ໄຂຊື່ ແລະ ເບີໂທທີ່ສະແດງໃນໂປຣໄຟລ໌'
+        : auth.hasSavedShipping
+            ? 'ຂໍ້ມູນນີ້ຈະເຕີມໃຫ້ອັດຕະໂນມັດຕອນສັ່ງຊື້'
+            : 'ບັນທຶກເພື່ອບໍ່ຕ້ອງພິມຊ້ຳ — ຫຼື ຂໍ້ມູນຈາກການສັ່ງຊື້ຈະຖືກບັນທຶກໃຫ້';
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'ທີ່ຢູ່ຈັດສົ່ງປະຈຳ',
+          basicOnly ? 'ແກ້ໄຂໂປຣໄຟລ໌' : 'ທີ່ຢູ່ຈັດສົ່ງປະຈຳ',
           style: GoogleFonts.notoSansLao(fontWeight: FontWeight.w700),
         ),
       ),
@@ -128,32 +143,34 @@ class _CustomerProfileEditScreenState extends State<CustomerProfileEditScreen> {
                 TextFormField(
                   controller: _phone,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'ເບີໂທຈັດສົ່ງ',
-                    prefixIcon: Icon(Icons.phone_outlined),
+                  decoration: InputDecoration(
+                    labelText: basicOnly ? 'ເບີໂທ' : 'ເບີໂທຈັດສົ່ງ',
+                    prefixIcon: const Icon(Icons.phone_outlined),
                   ),
                   validator: (v) =>
                       (v == null || v.trim().length < 8) ? 'ເບີໂທບໍ່ຖືກຕ້ອງ' : null,
                 ),
-                const SizedBox(height: AppSpacing.md),
-                TextFormField(
-                  controller: _address,
-                  decoration: const InputDecoration(
-                    labelText: 'ທີ່ຢູ່ / ບ້ານ / ຖະໜົນ',
-                    prefixIcon: Icon(Icons.home_outlined),
+                if (!basicOnly) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  TextFormField(
+                    controller: _address,
+                    decoration: const InputDecoration(
+                      labelText: 'ທີ່ຢູ່ / ບ້ານ / ຖະໜົນ',
+                      prefixIcon: Icon(Icons.home_outlined),
+                    ),
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'ກະລຸນາໃສ່ທີ່ຢູ່' : null,
                   ),
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'ກະລຸນາໃສ່ທີ່ຢູ່' : null,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                DeliveryLocationPicker(
-                  latitude: _lat,
-                  longitude: _lng,
-                  onChanged: (lat, lng) => setState(() {
-                    _lat = lat;
-                    _lng = lng;
-                  }),
-                ),
+                  const SizedBox(height: AppSpacing.lg),
+                  DeliveryLocationPicker(
+                    latitude: _lat,
+                    longitude: _lng,
+                    onChanged: (lat, lng) => setState(() {
+                      _lat = lat;
+                      _lng = lng;
+                    }),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.xl),
                 FilledButton.icon(
                   onPressed: _saving ? null : _save,
@@ -165,7 +182,7 @@ class _CustomerProfileEditScreenState extends State<CustomerProfileEditScreen> {
                         )
                       : const Icon(Icons.save_outlined),
                   label: Text(
-                    'ບັນທຶກທີ່ຢູ່ຈັດສົ່ງ',
+                    basicOnly ? 'ບັນທຶກໂປຣໄຟລ໌' : 'ບັນທຶກທີ່ຢູ່ຈັດສົ່ງ',
                     style: GoogleFonts.notoSansLao(fontWeight: FontWeight.w700),
                   ),
                   style: FilledButton.styleFrom(

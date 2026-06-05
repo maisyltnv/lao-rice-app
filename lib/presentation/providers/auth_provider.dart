@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/utils/profile_avatar_store.dart';
 import '../../data/datasources/remote/api_service.dart';
 import '../../domain/entities/auth_user_entity.dart';
 
@@ -18,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   String? _token;
   AuthUserEntity? _me;
   bool _ready = false;
+  String? _localAvatarPath;
 
   String? get token => _token;
   String? get username => _me?.username ?? '';
@@ -34,6 +36,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isReady => _ready;
   bool get isSignedIn => _token != null && _token!.isNotEmpty;
   bool get isAdmin => (_me?.role ?? '').toLowerCase() == 'admin';
+  String? get localAvatarPath => _localAvatarPath;
 
   Future<void> bootstrap() async {
     final prefs = await SharedPreferences.getInstance();
@@ -49,6 +52,24 @@ class AuthProvider extends ChangeNotifier {
     }
 
     _ready = true;
+    await _loadLocalAvatar();
+    notifyListeners();
+  }
+
+  Future<void> _loadLocalAvatar() async {
+    _localAvatarPath = await ProfileAvatarStore.loadPath(userId);
+  }
+
+  Future<void> saveLocalAvatar(List<int> bytes) async {
+    final id = userId;
+    if (id == null) throw StateError('not signed in');
+    _localAvatarPath = await ProfileAvatarStore.save(id, bytes);
+    notifyListeners();
+  }
+
+  Future<void> clearLocalAvatar() async {
+    await ProfileAvatarStore.clear(userId);
+    _localAvatarPath = null;
     notifyListeners();
   }
 
@@ -61,12 +82,14 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString(_kRole, me.role);
       await prefs.setString(_kUserId, '${me.id}');
     }
+    await _loadLocalAvatar();
     notifyListeners();
   }
 
   Future<void> _clearSession(SharedPreferences prefs) async {
     _token = null;
     _me = null;
+    _localAvatarPath = null;
     await prefs.remove(_kToken);
     await prefs.remove(_kUsername);
     await prefs.remove(_kPhone);
