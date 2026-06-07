@@ -12,10 +12,16 @@ import '../../widgets/whatsapp_chat_fab.dart';
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
+  static final GlobalKey<_MainShellState> shellKey = GlobalKey<_MainShellState>();
+
   /// Switch bottom tab from child screens (e.g. profile → cart).
   static void navigateToTab(BuildContext context, int index) {
     final state = context.findAncestorStateOfType<_MainShellState>();
     state?._selectTab(index);
+  }
+
+  static void goToOrdersTab() {
+    shellKey.currentState?._selectTab(2);
   }
 
   @override
