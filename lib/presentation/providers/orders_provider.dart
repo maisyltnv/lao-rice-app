@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/utils/checkout_error_message.dart';
 import '../../data/datasources/remote/api_service.dart';
 import '../../domain/entities/cart_item_entity.dart';
 import '../../domain/entities/order_entity.dart';
+import '../../domain/entities/shipping_config_entity.dart';
 import '../../domain/entities/shipping_quote_entity.dart';
 import '../../domain/repositories/orders_repository.dart';
 
@@ -21,6 +23,7 @@ class OrdersProvider extends ChangeNotifier {
   int _page = 1;
   bool _hasNext = false;
   ShippingQuoteEntity? _shippingQuote;
+  ShippingConfigEntity? _shippingConfig;
 
   List<OrderEntity> get orders => _orders;
   bool get isLoading => _loading;
@@ -28,6 +31,9 @@ class OrdersProvider extends ChangeNotifier {
   String? get phone => _phone;
   bool get hasNext => _hasNext;
   ShippingQuoteEntity? get shippingQuote => _shippingQuote;
+  ShippingConfigEntity? get shippingConfig => _shippingConfig;
+  bool get codEnabled => _shippingConfig?.codEnabled ?? true;
+  bool get bcelQrEnabled => _shippingConfig?.bcelQrEnabled ?? true;
 
   Future<void> loadSavedPhone() async {
     final prefs = await SharedPreferences.getInstance();
@@ -119,6 +125,16 @@ class OrdersProvider extends ChangeNotifier {
     }
   }
 
+  Future<ShippingConfigEntity?> refreshShippingConfig() async {
+    try {
+      _shippingConfig = await _repository.fetchShippingConfig();
+      notifyListeners();
+      return _shippingConfig;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<OrderEntity?> checkout({
     required String accessToken,
     required List<CartItemEntity> cartItems,
@@ -154,7 +170,8 @@ class OrdersProvider extends ChangeNotifier {
       notifyListeners();
       return created;
     } catch (e) {
-      _error = e is ApiException ? e.messageOrBody : e.toString();
+      final raw = e is ApiException ? e.messageOrBody : e.toString();
+      _error = friendlyCheckoutError(raw);
       notifyListeners();
       return null;
     }

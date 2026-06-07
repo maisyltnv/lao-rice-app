@@ -6,6 +6,7 @@ import '../../../core/constants/api_config.dart';
 import '../../../domain/entities/auth_user_entity.dart';
 import '../../../domain/entities/banner_entity.dart';
 import '../../../domain/entities/category_entity.dart';
+import '../../../domain/entities/shipping_config_entity.dart';
 import '../../../domain/entities/order_entity.dart';
 import '../../../domain/entities/product_entity.dart';
 import '../../../domain/entities/products_page.dart';
@@ -363,16 +364,13 @@ class ApiService {
     );
   }
 
-  Future<({double shippingFeeLak, double freeShippingMinSubtotalLak})> fetchShippingConfig() async {
+  Future<ShippingConfigEntity> fetchShippingConfig() async {
     final res = await _client.get(_uri('/orders/shipping-config'), headers: _headers());
     if (res.statusCode != 200) {
       throw ApiException(res.statusCode, res.body);
     }
     final map = jsonDecode(res.body) as Map<String, dynamic>;
-    return (
-      shippingFeeLak: (map['shipping_fee_lak'] as num?)?.toDouble() ?? 0,
-      freeShippingMinSubtotalLak: (map['free_shipping_min_subtotal_lak'] as num?)?.toDouble() ?? 0,
-    );
+    return ShippingConfigEntity.fromJson(map);
   }
 
   Future<ShippingQuoteEntity> fetchShippingQuote(double subtotalLak) async {

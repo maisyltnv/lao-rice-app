@@ -75,8 +75,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           _deliveryLng = auth.deliveryLongitude;
         });
       }
-      await orders.refreshShippingQuote(cart.subtotalLak);
-      if (mounted) setState(() => _quoteLoading = false);
+      await Future.wait([
+        orders.refreshShippingQuote(cart.subtotalLak),
+        orders.refreshShippingConfig(),
+      ]);
+      if (!mounted) return;
+      _syncPaymentMethod(orders);
+      setState(() => _quoteLoading = false);
     });
   }
 
@@ -157,6 +162,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     });
   }
 
+  void _syncPaymentMethod(OrdersProvider orders) {
+    final cfg = orders.shippingConfig;
+    if (cfg == null) return;
+
+    var method = _paymentMethod;
+    if (method == 'cod' && !cfg.codEnabled) {
+      method = cfg.bcelQrEnabled ? 'bcel_qr' : method;
+    }
+    if (method == 'bcel_qr' && !cfg.bcelQrEnabled) {
+      method = cfg.codEnabled ? 'cod' : method;
+    }
+    if (method == _paymentMethod) return;
+
+    if (method == 'cod') _clearReceipt();
+    _paymentMethod = method;
+  }
+
+  bool _validatePaymentMethod(OrdersProvider orders) {
+    if (_paymentMethod == 'cod' && !orders.codEnabled) {
+      showTopRightToast(
+        context,
+        'ຮ້ານປິດການຈ່າຍ COD ຊົ່ວຄາວ — ກະລຸນາເລືອກວິທີຊຳລະອື່ນ',
+        isError: true,
+        duration: const Duration(seconds: 3),
+      );
+      return false;
+    }
+    if (_paymentMethod == 'bcel_qr' && !orders.bcelQrEnabled) {
+      showTopRightToast(
+        context,
+        'ຮ້ານປິດການຊຳລະ BCEL QR ຊົ່ວຄາວ — ກະລຸນາເລືອກວິທີຊຳລະອື່ນ',
+        isError: true,
+        duration: const Duration(seconds: 3),
+      );
+      return false;
+    }
+    return true;
+  }
+
   bool _validateReceipt() {
     if (_paymentMethod == 'bcel_qr' && _receiptFile == null) {
       showTopRightToast(
@@ -172,11 +216,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Future<void> _submit() async {
     final cart = context.read<CartProvider>();
+    final orders = context.read<OrdersProvider>();
     if (cart.isEmpty) return;
     if (!_validateReceipt()) return;
+    if (!_validatePaymentMethod(orders)) return;
 
     setState(() => _busy = true);
-    final orders = context.read<OrdersProvider>();
     List<int>? receiptBytes;
     String? receiptName;
     if (_paymentMethod == 'bcel_qr' && _receiptFile != null) {
@@ -327,6 +372,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (_step == 1) {
       if (_validateShipping()) _goToStep(2);
     } else if (_step == 2) {
+      final orders = context.read<OrdersProvider>();
+      if (!_validatePaymentMethod(orders)) return;
       if (_validateReceipt()) _goToStep(3);
     } else if (_step == 3) {
       _submit();
@@ -410,6 +457,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildPaymentStep(double total, bool compact) {
+    final orders = context.watch<OrdersProvider>();
+    final bcelEnabled = orders.bcelQrEnabled;
+    final codEnabled = orders.codEnabled;
     final titleSize = CheckoutLayout.titleFontSize(context);
     return Column(
       key: const ValueKey('step_payment'),
@@ -421,27 +471,45 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           style: GoogleFonts.notoSansLao(fontSize: titleSize, fontWeight: FontWeight.w800),
         ),
         SizedBox(height: CheckoutLayout.sectionGap(context)),
-        PaymentMethodTile(
-          selected: _paymentMethod == 'bcel_qr',
-          icon: Icons.qr_code_2_rounded,
-          iconBg: const Color(0xFF2563EB),
-          title: 'BCEL One QR',
-          subtitle: 'ສະແກນ QR Code ຈ່າຍຜ່ານ BCEL One',
-          onTap: () => setState(() => _paymentMethod = 'bcel_qr'),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        PaymentMethodTile(
-          selected: _paymentMethod == 'cod',
-          icon: Icons.payments_outlined,
-          iconBg: AppColors.secondary,
-          title: 'ເກັບເງິນປາຍທາງ (COD)',
-          subtitle: 'ຈ່າຍເງິນເມື່ອໄດ້ຮັບສິນຄ້າ',
-          onTap: () => setState(() {
-            _paymentMethod = 'cod';
-            _clearReceipt();
-          }),
-        ),
-        if (_paymentMethod == 'bcel_qr') ...[
+        if (!bcelEnabled && !codEnabled)
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.25)),
+            ),
+            child: Text(
+              'ຮ້ານປິດການຊຳລະຊົ່ວຄາວ — ກະລຸນາລອງໃໝ່ພາຍຫຼັງ',
+              style: GoogleFonts.notoSansLao(fontSize: 13, color: AppColors.error),
+            ),
+          )
+        else ...[
+          if (bcelEnabled) ...[
+            PaymentMethodTile(
+              selected: _paymentMethod == 'bcel_qr',
+              icon: Icons.qr_code_2_rounded,
+              iconBg: const Color(0xFF2563EB),
+              title: 'BCEL One QR',
+              subtitle: 'ສະແກນ QR Code ຈ່າຍຜ່ານ BCEL One',
+              onTap: () => setState(() => _paymentMethod = 'bcel_qr'),
+            ),
+            if (codEnabled) const SizedBox(height: AppSpacing.md),
+          ],
+          if (codEnabled)
+            PaymentMethodTile(
+              selected: _paymentMethod == 'cod',
+              icon: Icons.payments_outlined,
+              iconBg: AppColors.secondary,
+              title: 'ເກັບເງິນປາຍທາງ (COD)',
+              subtitle: 'ຈ່າຍເງິນເມື່ອໄດ້ຮັບສິນຄ້າ',
+              onTap: () => setState(() {
+                _paymentMethod = 'cod';
+                _clearReceipt();
+              }),
+            ),
+        ],
+        if (_paymentMethod == 'bcel_qr' && bcelEnabled) ...[
           const SizedBox(height: AppSpacing.lg),
           Container(
             padding: const EdgeInsets.all(AppSpacing.lg),

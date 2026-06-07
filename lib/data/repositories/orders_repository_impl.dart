@@ -1,3 +1,4 @@
+import '../../domain/entities/shipping_config_entity.dart';
 import '../../domain/entities/order_entity.dart';
 import '../../domain/entities/shipping_quote_entity.dart';
 import '../../domain/repositories/orders_repository.dart';
@@ -32,7 +33,7 @@ class OrdersRepositoryImpl implements OrdersRepository {
   }
 
   @override
-  Future<({double shippingFeeLak, double freeShippingMinSubtotalLak})> fetchShippingConfig() {
+  Future<ShippingConfigEntity> fetchShippingConfig() {
     return _api.fetchShippingConfig();
   }
 

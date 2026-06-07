@@ -1,4 +1,5 @@
 import '../entities/order_entity.dart';
+import '../entities/shipping_config_entity.dart';
 import '../entities/shipping_quote_entity.dart';
 
 abstract class OrdersRepository {
@@ -16,7 +17,7 @@ abstract class OrdersRepository {
 
   Future<ShippingQuoteEntity> fetchShippingQuote(double subtotalLak);
 
-  Future<({double shippingFeeLak, double freeShippingMinSubtotalLak})> fetchShippingConfig();
+  Future<ShippingConfigEntity> fetchShippingConfig();
 
   /// Authenticated checkout — [accessToken] from phone OTP login.
   Future<OrderEntity> placeOrder({

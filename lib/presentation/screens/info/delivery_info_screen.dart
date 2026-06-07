@@ -22,6 +22,8 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
   bool _loading = true;
   double? _shippingFeeLak;
   double? _freeMinLak;
+  bool _bcelQrEnabled = true;
+  bool _codEnabled = true;
   String? _loadError;
 
   @override
@@ -41,6 +43,8 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
       setState(() {
         _shippingFeeLak = config.shippingFeeLak;
         _freeMinLak = config.freeShippingMinSubtotalLak;
+        _bcelQrEnabled = config.bcelQrEnabled;
+        _codEnabled = config.codEnabled;
         _loading = false;
       });
     } catch (e) {
@@ -205,8 +209,16 @@ class _DeliveryInfoScreenState extends State<DeliveryInfoScreen> {
             icon: Icons.payments_outlined,
             child: Column(
               children: [
-                _infoTile(Icons.qr_code_2, 'BCEL One QR', 'ອັບໂຫຼດສະລິບການໂອນ'),
-                _infoTile(Icons.payments_outlined, 'COD', 'ເກັບເງິນປາຍທາງເມື່ອຮັບເຄື່ອງ'),
+                if (_bcelQrEnabled)
+                  _infoTile(Icons.qr_code_2, 'BCEL One QR', 'ອັບໂຫຼດສະລິບການໂອນ'),
+                if (_bcelQrEnabled && _codEnabled) const SizedBox(height: AppSpacing.sm),
+                if (_codEnabled)
+                  _infoTile(Icons.payments_outlined, 'COD', 'ເກັບເງິນປາຍທາງເມື່ອຮັບເຄື່ອງ'),
+                if (!_bcelQrEnabled && !_codEnabled)
+                  Text(
+                    'ຮ້ານປິດການຊຳລະຊົ່ວຄາວ',
+                    style: GoogleFonts.notoSansLao(fontSize: 13, color: AppColors.textSecondary),
+                  ),
               ],
             ),
           ),
