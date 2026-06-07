@@ -4,16 +4,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/utils/checkout_layout.dart';
-import '../../../core/utils/lak_currency_formatter.dart';
+import '../../../core/utils/lak_currency_formatter.dart' show formatLakWeb;
 import '../../../domain/entities/cart_item_entity.dart';
 import '../../../domain/entities/shipping_quote_entity.dart';
 import '../../widgets/product_image.dart';
-
-/// Web-style LAK: `1.560.000 ₭`
-String formatLakWeb(num amount) {
-  final core = LakCurrencyFormatter.format(amount, showSymbol: false).replaceAll(',', '.');
-  return '$core ₭';
-}
 
 class CheckoutStepIndicator extends StatelessWidget {
   const CheckoutStepIndicator({super.key, required this.currentStep});

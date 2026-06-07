@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/price_tag.dart';
 import '../../widgets/product_image.dart';
 import '../../widgets/quantity_stepper.dart';
+import '../auth/phone_login_screen.dart';
 import 'checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
@@ -112,9 +114,18 @@ class CartScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const CheckoutScreen()),
-                  ),
+                  onPressed: () {
+                    final auth = context.read<AuthProvider>();
+                    if (!auth.isSignedIn) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (_) => const PhoneLoginScreen()),
+                      );
+                      return;
+                    }
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(builder: (_) => const CheckoutScreen()),
+                    );
+                  },
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     backgroundColor: AppColors.primary,

@@ -4,9 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 
 class OrderStatusChip extends StatelessWidget {
-  const OrderStatusChip({super.key, required this.status});
+  const OrderStatusChip({
+    super.key,
+    required this.status,
+    this.label,
+  });
 
   final String status;
+  /// Display text (e.g. Lao); colors still derive from [status].
+  final String? label;
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +21,7 @@ class OrderStatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
       child: Text(
-        status,
+        label ?? status,
         style: GoogleFonts.notoSansLao(
           fontSize: 11,
           fontWeight: FontWeight.w600,

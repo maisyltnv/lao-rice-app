@@ -26,42 +26,53 @@ class PromoBanner extends StatefulWidget {
 }
 
 class _PromoBannerState extends State<PromoBanner> {
-  final _pageCtrl = PageController();
-  Timer? _autoTimer;
-  int _page = 0;
+  static const _displayDuration = Duration(seconds: 3);
 
-  @override
-  void initState() {
-    super.initState();
-    _startAutoScroll();
-  }
+  final _pageCtrl = PageController();
+  Timer? _advanceTimer;
+  int _page = 0;
 
   @override
   void didUpdateWidget(PromoBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.banners.length != widget.banners.length) {
+      _cancelAdvanceTimer();
       _page = 0;
-      _startAutoScroll();
+      if (_pageCtrl.hasClients) {
+        _pageCtrl.jumpToPage(0);
+      }
     }
   }
 
-  void _startAutoScroll() {
-    _autoTimer?.cancel();
-    if (widget.banners.length <= 1) return;
-    _autoTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      if (!mounted || !_pageCtrl.hasClients || widget.banners.isEmpty) return;
-      final next = (_page + 1) % widget.banners.length;
-      _pageCtrl.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 450),
-        curve: Curves.easeOutCubic,
-      );
-    });
+  void _onPageChanged(int index) {
+    setState(() => _page = index);
+    _cancelAdvanceTimer();
+  }
+
+  void _onActiveSlideReady(int index) {
+    if (!mounted || index != _page || widget.banners.length <= 1) return;
+    _cancelAdvanceTimer();
+    _advanceTimer = Timer(_displayDuration, _goToNextSlide);
+  }
+
+  void _goToNextSlide() {
+    if (!mounted || !_pageCtrl.hasClients || widget.banners.length <= 1) return;
+    final next = (_page + 1) % widget.banners.length;
+    _pageCtrl.animateToPage(
+      next,
+      duration: const Duration(milliseconds: 450),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  void _cancelAdvanceTimer() {
+    _advanceTimer?.cancel();
+    _advanceTimer = null;
   }
 
   @override
   void dispose() {
-    _autoTimer?.cancel();
+    _cancelAdvanceTimer();
     _pageCtrl.dispose();
     super.dispose();
   }
@@ -92,9 +103,11 @@ class _PromoBannerState extends State<PromoBanner> {
           child: PageView.builder(
             controller: _pageCtrl,
             itemCount: count,
-            onPageChanged: (i) => setState(() => _page = i),
+            onPageChanged: _onPageChanged,
             itemBuilder: (context, index) => _BannerSlideView(
               banner: widget.banners[index],
+              isActive: index == _page,
+              onImageReady: () => _onActiveSlideReady(index),
               onTap: widget.onBannerTap,
             ),
           ),
@@ -124,9 +137,16 @@ class _PromoBannerState extends State<PromoBanner> {
 }
 
 class _BannerSlideView extends StatefulWidget {
-  const _BannerSlideView({required this.banner, this.onTap});
+  const _BannerSlideView({
+    required this.banner,
+    required this.isActive,
+    required this.onImageReady,
+    this.onTap,
+  });
 
   final BannerEntity banner;
+  final bool isActive;
+  final VoidCallback onImageReady;
   final void Function(BannerEntity banner)? onTap;
 
   @override
@@ -135,6 +155,8 @@ class _BannerSlideView extends StatefulWidget {
 
 class _BannerSlideViewState extends State<_BannerSlideView> {
   String? _resolvedImageUrl;
+  bool _imageLoaded = false;
+  bool _notifiedReady = false;
 
   @override
   void initState() {
@@ -146,18 +168,48 @@ class _BannerSlideViewState extends State<_BannerSlideView> {
   void didUpdateWidget(_BannerSlideView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.banner.imageUrl != widget.banner.imageUrl) {
+      _imageLoaded = false;
+      _notifiedReady = false;
       _resolveImage();
+    }
+    if (!oldWidget.isActive && widget.isActive) {
+      _notifiedReady = false;
+      _maybeNotifyReady();
+    } else if (oldWidget.isActive && !widget.isActive) {
+      _notifiedReady = false;
     }
   }
 
   Future<void> _resolveImage() async {
     final raw = widget.banner.imageUrl.trim();
     if (raw.isEmpty) {
-      if (mounted) setState(() => _resolvedImageUrl = null);
+      if (mounted) {
+        setState(() => _resolvedImageUrl = null);
+        _maybeNotifyReady();
+      }
       return;
     }
     final resolved = await ProductImageUrlResolver.shared.resolve(raw);
-    if (mounted) setState(() => _resolvedImageUrl = resolved);
+    if (mounted) {
+      setState(() => _resolvedImageUrl = resolved);
+      _maybeNotifyReady();
+    }
+  }
+
+  void _onImageLoaded() {
+    if (_imageLoaded) return;
+    _imageLoaded = true;
+    _maybeNotifyReady();
+  }
+
+  void _maybeNotifyReady() {
+    if (!widget.isActive || _notifiedReady) return;
+    final url = _resolvedImageUrl;
+    final hasImage = url != null && url.isNotEmpty;
+    if (!hasImage || _imageLoaded) {
+      _notifiedReady = true;
+      widget.onImageReady();
+    }
   }
 
   @override
@@ -179,7 +231,17 @@ class _BannerSlideViewState extends State<_BannerSlideView> {
                 Image.network(
                   imageUrl,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) => _onImageLoaded());
+                      return child;
+                    }
+                    return const SizedBox.shrink();
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) => _onImageLoaded());
+                    return const SizedBox.shrink();
+                  },
                 ),
               DecoratedBox(
                 decoration: BoxDecoration(

@@ -33,6 +33,13 @@ abstract final class AppColors {
     colors: [primary, primaryLight],
   );
 
+  /// Soft warm card for the customer profile header.
+  static const LinearGradient profileHeaderGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFFFFCF7), Color(0xFFF3E8D4)],
+  );
+
   static const LinearGradient promoGradient = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
