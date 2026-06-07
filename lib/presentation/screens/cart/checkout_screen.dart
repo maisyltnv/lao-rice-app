@@ -524,19 +524,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   style: GoogleFonts.notoSansLao(fontSize: 13, color: AppColors.textSecondary),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-                  child: Image.asset(
-                    'assets/payment/bcel_lapnet_qr.png',
-                    width: double.infinity,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, _, _) => Container(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      color: AppColors.surface,
-                      child: Icon(
-                        Icons.qr_code_2_rounded,
-                        size: 64,
-                        color: AppColors.textMuted.withValues(alpha: 0.6),
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                    child: Image.asset(
+                      'assets/payment/bcel_lapnet_qr.png',
+                      width: 300,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, _, _) => Container(
+                        width: 300,
+                        padding: const EdgeInsets.all(AppSpacing.xl),
+                        color: AppColors.surface,
+                        child: Icon(
+                          Icons.qr_code_2_rounded,
+                          size: 64,
+                          color: AppColors.textMuted.withValues(alpha: 0.6),
+                        ),
                       ),
                     ),
                   ),

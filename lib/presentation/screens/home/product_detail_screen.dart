@@ -29,6 +29,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   ProductEntity? _product;
   bool _loading = true;
   String? _loadError;
+  int _selectedImageIndex = 0;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (p != null) {
       setState(() {
         _product = p;
+        _selectedImageIndex = 0;
         _loading = false;
       });
     } else {
@@ -63,6 +65,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     if (product == null) return;
     context.read<CartProvider>().add(product);
     showTopRightToast(context, 'ເພີ່ມໃສ່ກະຕ່າແລ້ວ');
+  }
+
+  List<String> get _gallery {
+    final product = _product;
+    if (product == null) return const [];
+    if (product.imageUrls.isNotEmpty) return product.imageUrls;
+    if (product.imageUrl.isNotEmpty) return [product.imageUrl];
+    return const [];
   }
 
   @override
@@ -92,6 +102,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
 
     final p = _product!;
+    final gallery = _gallery;
+    final safeIndex = gallery.isEmpty ? 0 : _selectedImageIndex.clamp(0, gallery.length - 1);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -106,13 +118,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  ProductImage(
-                    imageUrl: p.imageUrl,
-                    productName: p.name,
-                    aspectRatio: 1,
-                    borderRadius: 0,
-                    fit: BoxFit.cover,
-                  ),
+                  if (gallery.isNotEmpty)
+                    ProductImage(
+                      imageUrl: gallery[safeIndex],
+                      productName: p.name,
+                      aspectRatio: 1,
+                      borderRadius: 0,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Container(color: AppColors.surface),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -126,13 +141,53 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             ),
           ),
+          if (gallery.length > 1)
+            SliverToBoxAdapter(
+              child: Container(
+                color: AppColors.surface,
+                padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.md),
+                child: SizedBox(
+                  height: 72,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: gallery.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+                    itemBuilder: (context, index) {
+                      final selected = index == safeIndex;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedImageIndex = index),
+                        child: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: selected ? AppColors.primary : AppColors.border,
+                              width: selected ? 2 : 1,
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: ProductImage(
+                            imageUrl: gallery[index],
+                            productName: p.name,
+                            aspectRatio: 1,
+                            borderRadius: 0,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
               ),
-              transform: Matrix4.translationValues(0, -20, 0),
+              transform: Matrix4.translationValues(0, gallery.length > 1 ? 0 : -20, 0),
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

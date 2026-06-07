@@ -7,6 +7,7 @@ class ProductEntity {
     required this.name,
     required this.description,
     required this.imageUrl,
+    required this.imageUrls,
     required this.category,
     required this.categoryId,
     required this.finalPriceLak,
@@ -17,6 +18,7 @@ class ProductEntity {
   final String name;
   final String description;
   final String imageUrl;
+  final List<String> imageUrls;
   final String category;
   final int? categoryId;
   final double finalPriceLak;
@@ -38,11 +40,26 @@ class ProductEntity {
       categoryName = 'ທົ່ວໄປ';
     }
     final name = j['name'] as String? ?? '';
+    final parsedUrls = <String>[];
+    final rawUrls = j['image_urls'];
+    if (rawUrls is List) {
+      for (final item in rawUrls) {
+        final url = _imageUrlFromApi(item?.toString());
+        if (url.isNotEmpty && !parsedUrls.contains(url)) {
+          parsedUrls.add(url);
+        }
+      }
+    }
+    final cover = _imageUrlFromApi(j['image_url'] as String?);
+    if (parsedUrls.isEmpty && cover.isNotEmpty) {
+      parsedUrls.add(cover);
+    }
     return ProductEntity(
       id: (j['id'] as num).toInt(),
       name: name,
       description: j['description'] as String? ?? '',
-      imageUrl: _imageUrlFromApi(j['image_url'] as String?),
+      imageUrl: parsedUrls.isNotEmpty ? parsedUrls.first : cover,
+      imageUrls: parsedUrls,
       category: categoryName,
       categoryId: categoryId,
       finalPriceLak: LakAmount.normalize(j['final_price_lak'] as num?),
