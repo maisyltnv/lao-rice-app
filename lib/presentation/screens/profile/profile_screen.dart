@@ -84,9 +84,7 @@ class ProfileScreen extends StatelessWidget {
             onPressed: () async {
               await auth.logout();
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('ອອກຈາກລະບົບແລ້ວ')),
-                );
+                showTopRightToast(context, 'ອອກຈາກລະບົບແລ້ວ');
               }
             },
             icon: const Icon(Icons.logout_rounded, color: AppColors.error),

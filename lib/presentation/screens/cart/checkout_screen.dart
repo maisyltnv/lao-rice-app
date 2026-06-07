@@ -214,13 +214,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         /* API saves profile on place order */
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('ສັ່ງຊື້ສຳເລັດ ${created.orderNumber}')),
+      showTopRightToast(
+        context,
+        'ສັ່ງຊື້ສຳເລັດ ${created.orderNumber}',
+        duration: const Duration(seconds: 3),
       );
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(orders.error ?? 'ສັ່ງຊື້ບໍ່ສຳເລັດ')),
+      showTopRightToast(
+        context,
+        orders.error ?? 'ສັ່ງຊື້ບໍ່ສຳເລັດ',
+        isError: true,
+        duration: const Duration(seconds: 3),
       );
     }
   }

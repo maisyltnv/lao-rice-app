@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -6,6 +8,9 @@ import 'package:latlong2/latlong.dart';
 
 import '../../core/constants/vientiane_delivery.dart';
 import '../../core/theme/app_colors.dart';
+
+const _pinWidth = 32.0;
+const _pinHeight = 42.0;
 
 /// Pauses ancestor [Scrollable] only when the user drags on the map (not on tap).
 class _MapScrollHold extends StatefulWidget {
@@ -90,12 +95,15 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
   static const _maxZoom = 18.0;
 
   final _mapController = MapController();
+  final _mapKey = GlobalKey();
   bool _locating = false;
   String? _error;
   String? _hint;
 
   late double _pinLat;
   late double _pinLng;
+  double? _lastNotifiedLat;
+  double? _lastNotifiedLng;
 
   @override
   void initState() {
@@ -104,6 +112,8 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (widget.latitude == null || widget.longitude == null) {
+        _lastNotifiedLat = _pinLat;
+        _lastNotifiedLng = _pinLng;
         widget.onChanged(_pinLat, _pinLng);
       }
     });
@@ -117,17 +127,29 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
   @override
   void didUpdateWidget(DeliveryLocationPicker oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.latitude != oldWidget.latitude ||
-        widget.longitude != oldWidget.longitude) {
-      setState(_syncPinFromWidget);
-      _moveMapTo(_pinLat, _pinLng, zoom: _defaultZoom);
+    if (widget.latitude == oldWidget.latitude &&
+        widget.longitude == oldWidget.longitude) {
+      return;
     }
+
+    final echoedFromPicker = _coordsMatch(widget.latitude, _lastNotifiedLat) &&
+        _coordsMatch(widget.longitude, _lastNotifiedLng);
+    if (echoedFromPicker) return;
+
+    setState(_syncPinFromWidget);
+    _moveMapTo(_pinLat, _pinLng, zoom: _defaultZoom);
   }
 
-  void _moveMapTo(double lat, double lng, {required double zoom}) {
+  bool _coordsMatch(double? a, double? b) {
+    if (a == null || b == null) return false;
+    return (a - b).abs() < 1e-7;
+  }
+
+  void _moveMapTo(double lat, double lng, {double? zoom}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _mapController.move(LatLng(lat, lng), zoom.clamp(_minZoom, _maxZoom));
+      final z = (zoom ?? _mapController.camera.zoom).clamp(_minZoom, _maxZoom);
+      _mapController.move(LatLng(lat, lng), z);
     });
   }
 
@@ -145,16 +167,37 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
       });
       return;
     }
+
     setState(() {
       _error = null;
       _hint = hint;
       _pinLat = lat;
       _pinLng = lng;
     });
+
+    _lastNotifiedLat = lat;
+    _lastNotifiedLng = lng;
     widget.onChanged(lat, lng);
   }
 
-  void _pinFromMapTap(LatLng point) {
+  LatLng? _latLngFromTap(TapPosition tapPosition) {
+    final relative = tapPosition.relative;
+    if (relative != null) {
+      return _mapController.camera.offsetToCrs(relative);
+    }
+
+    final mapBox = _mapKey.currentContext?.findRenderObject() as RenderBox?;
+    if (mapBox == null || !mapBox.hasSize) return null;
+
+    final local = mapBox.globalToLocal(tapPosition.global);
+    final mapRect = Offset.zero & mapBox.size;
+    if (!mapRect.contains(local)) return null;
+    return _mapController.camera.offsetToCrs(local);
+  }
+
+  void _pinFromMapTap(TapPosition tapPosition) {
+    final point = _latLngFromTap(tapPosition);
+    if (point == null) return;
     _applyCoordinates(
       point.latitude,
       point.longitude,
@@ -169,12 +212,6 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
       center.longitude,
       hint: 'ປັກຫມຸດຕາມຈຸດກາງແຜນທີ່ແລ້ວ',
     );
-  }
-
-  void _onMapEvent(MapEvent event) {
-    if (event is MapEventTap) {
-      _pinFromMapTap(event.tapPosition);
-    }
   }
 
   Future<bool> _confirmOpenSettings({
@@ -279,7 +316,7 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
         pos.longitude,
         hint: 'ປັກຫມຸດຕາມ GPS ແລ້ວ',
       );
-      _mapController.move(LatLng(pos.latitude, pos.longitude), _gpsZoom);
+      _moveMapTo(pos.latitude, pos.longitude, zoom: _gpsZoom);
     } catch (_) {
       if (mounted) setState(() => _error = 'ບໍ່ສາມາດອ່ານຕຳແໜ່ງໄດ້');
     } finally {
@@ -290,9 +327,16 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
   @override
   Widget build(BuildContext context) {
     final pin = LatLng(_pinLat, _pinLng);
+    final pinAnchor = Marker.computePixelAlignment(
+      width: _pinWidth,
+      height: _pinHeight,
+      left: _pinWidth / 2,
+      top: _pinHeight,
+    );
     const mapFlags = InteractiveFlag.all &
         ~InteractiveFlag.rotate &
-        ~InteractiveFlag.doubleTapZoom;
+        ~InteractiveFlag.doubleTapZoom &
+        ~InteractiveFlag.doubleTapDragZoom;
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -353,14 +397,14 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
                 child: Stack(
                   children: [
                     FlutterMap(
+                      key: _mapKey,
                       mapController: _mapController,
                       options: MapOptions(
                         initialCenter: pin,
                         initialZoom: _defaultZoom,
                         minZoom: _minZoom,
                         maxZoom: _maxZoom,
-                        onTap: (_, point) => _pinFromMapTap(point),
-                        onMapEvent: _onMapEvent,
+                        onTap: (tapPosition, _) => _pinFromMapTap(tapPosition),
                         interactionOptions: const InteractionOptions(flags: mapFlags),
                       ),
                       children: [
@@ -372,21 +416,11 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
                           markers: [
                             Marker(
                               point: pin,
-                              width: 42,
-                              height: 42,
-                              alignment: Alignment.bottomCenter,
-                              child: IgnorePointer(
-                                child: Icon(
-                                  Icons.location_on,
-                                  color: AppColors.error,
-                                  size: 42,
-                                  shadows: const [
-                                    Shadow(
-                                      blurRadius: 4,
-                                      color: Color(0x44000000),
-                                    ),
-                                  ],
-                                ),
+                              width: _pinWidth,
+                              height: _pinHeight,
+                              alignment: pinAnchor,
+                              child: const IgnorePointer(
+                                child: _DeliveryPinMarker(),
                               ),
                             ),
                           ],
@@ -429,6 +463,54 @@ class _DeliveryLocationPickerState extends State<DeliveryLocationPicker> {
       ),
     );
   }
+}
+
+class _DeliveryPinMarker extends StatelessWidget {
+  const _DeliveryPinMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(_pinWidth, _pinHeight),
+      painter: _DeliveryPinPainter(color: AppColors.error),
+    );
+  }
+}
+
+class _DeliveryPinPainter extends CustomPainter {
+  const _DeliveryPinPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final tip = Offset(w / 2, h);
+    final bodyTop = h * 0.08;
+
+    final path = ui.Path()
+      ..moveTo(tip.dx, tip.dy)
+      ..quadraticBezierTo(w * 0.92, h * 0.62, w * 0.82, bodyTop + w * 0.18)
+      ..arcToPoint(
+        Offset(w * 0.18, bodyTop + w * 0.18),
+        radius: Radius.circular(w * 0.32),
+        clockwise: false,
+      )
+      ..quadraticBezierTo(w * 0.08, h * 0.62, tip.dx, tip.dy)
+      ..close();
+
+    canvas.drawShadow(path, const Color(0x66000000), 2.5, false);
+    canvas.drawPath(path, Paint()..color = color);
+    canvas.drawCircle(
+      Offset(w / 2, bodyTop + w * 0.34),
+      w * 0.16,
+      Paint()..color = Colors.white,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _DeliveryPinPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class _ZoomButton extends StatelessWidget {
