@@ -1,4 +1,4 @@
-# lao_beauty_health
+# lao_rice_shop
 
 A new Flutter project.
 

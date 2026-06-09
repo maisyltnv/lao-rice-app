@@ -1,4 +1,4 @@
-package com.laobeauty.lao_beauty_health
+package com.laorice.shop
 
 import io.flutter.embedding.android.FlutterActivity
 

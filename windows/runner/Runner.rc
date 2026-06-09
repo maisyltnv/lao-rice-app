@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.laobeauty" "\0"
-            VALUE "FileDescription", "lao_beauty_health" "\0"
+            VALUE "CompanyName", "com.laorice" "\0"
+            VALUE "FileDescription", "lao_rice_shop" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "lao_beauty_health" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.laobeauty. All rights reserved." "\0"
-            VALUE "OriginalFilename", "lao_beauty_health.exe" "\0"
-            VALUE "ProductName", "lao_beauty_health" "\0"
+            VALUE "InternalName", "lao_rice_shop" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.laorice. All rights reserved." "\0"
+            VALUE "OriginalFilename", "lao_rice_shop.exe" "\0"
+            VALUE "ProductName", "lao_rice_shop" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
