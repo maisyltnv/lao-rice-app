@@ -56,7 +56,7 @@ class LaoRiceApp extends StatelessWidget {
       title: 'ຮ້ານເຂົ້າສານ ວຽງຈັນ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
-      home: const MainShell(),
+      home: MainShell(key: MainShell.shellKey),
     );
   }
 }

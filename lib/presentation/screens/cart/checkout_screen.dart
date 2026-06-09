@@ -17,6 +17,7 @@ import '../../providers/orders_provider.dart';
 import '../auth/phone_login_screen.dart';
 import '../../widgets/product_image.dart';
 import '../../widgets/top_right_toast.dart';
+import '../shell/main_shell.dart';
 import 'checkout_widgets.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -258,6 +259,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       } catch (_) {
         /* API saves profile on place order */
       }
+      await orders.searchByPhone(_phone.text.trim(), refresh: true);
       if (!mounted) return;
       showTopRightToast(
         context,
@@ -265,6 +267,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         duration: const Duration(seconds: 3),
       );
       Navigator.of(context).popUntil((route) => route.isFirst);
+      MainShell.goToOrdersTab();
     } else {
       showTopRightToast(
         context,
