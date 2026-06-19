@@ -1,6 +1,6 @@
 /// Base URL for the Lao Rice API.
 ///
-/// Default: production VPS (`http://62.171.159.75:8081`).
+/// Default: production (`https://api.khaosan.online`).
 ///
 /// Local dev override:
 /// ```bash
@@ -20,7 +20,7 @@ class ApiConfig {
   static const int port = 8081;
 
   /// Production API (same host as lao-rice-web `.env.production`).
-  static const String productionBaseUrl = 'http://62.171.159.75:$port';
+  static const String productionBaseUrl = 'https://api.khaosan.online';
 
   static String get baseUrl {
     const override = String.fromEnvironment('API_BASE');
