@@ -10,7 +10,7 @@ class SupportContactConfig {
   SupportContactConfig._();
 
   /// E.164 digits only (no +). Laos mobile example: 85620XXXXXXXX.
-  static const String defaultWhatsAppE164 = '8562055512345';
+  static const String defaultWhatsAppE164 = '8562055697625';
 
   static const String defaultGreeting =
       'ສະບາຍດີ, ຂ້ອຍສົນໃຈສັ່ງເຂົ້າຈາກຮ້ານເຂົ້າສານ — ຊ່ວຍແນະນຳແລະຢືນຢັນຄຳສັ່ງໃຫ້ແດ່.';
