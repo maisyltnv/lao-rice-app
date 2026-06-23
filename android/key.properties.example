@@ -1,0 +1,12 @@
+# Copy this file to android/key.properties and fill in your real values.
+# android/key.properties is gitignored — never commit it or your .jks keystore.
+#
+# Create the keystore first (one time):
+#   keytool -genkey -v -keystore ~/khaosan-upload-keystore.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias khaosan
+#
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=khaosan
+# Absolute path to your keystore (keep it OUTSIDE the repo):
+storeFile=/Users/k2211022/khaosan-upload-keystore.jks
