@@ -158,4 +158,15 @@ class AuthProvider extends ChangeNotifier {
     await _clearSession(prefs);
     notifyListeners();
   }
+
+  /// Permanently deletes the account on the server, then clears the local session.
+  Future<void> deleteAccount() async {
+    if (_token == null || _token!.isEmpty) {
+      throw StateError('not signed in');
+    }
+    await _api.deleteAccount(_token!);
+    final prefs = await SharedPreferences.getInstance();
+    await _clearSession(prefs);
+    notifyListeners();
+  }
 }

@@ -182,6 +182,17 @@ class ApiService {
     return AuthUserEntity.fromJson(map);
   }
 
+  /// Permanently deletes the signed-in user's account (DELETE /auth/me).
+  Future<void> deleteAccount(String accessToken) async {
+    final res = await _client.delete(
+      _uri('/auth/me'),
+      headers: _headers(bearer: accessToken),
+    );
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw ApiException(res.statusCode, res.body);
+    }
+  }
+
   Future<AuthUserEntity> updateCustomerProfile({
     required String accessToken,
     required String recipientName,

@@ -97,6 +97,56 @@ class ProfileScreen extends StatelessWidget {
               side: const BorderSide(color: AppColors.error),
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          TextButton.icon(
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (dialogCtx) => AlertDialog(
+                  title: Text(
+                    'ລຶບບັນຊີ',
+                    style: GoogleFonts.notoSansLao(fontWeight: FontWeight.w700),
+                  ),
+                  content: Text(
+                    'ການລຶບບັນຊີຈະລຶບຂໍ້ມູນສ່ວນຕົວຂອງທ່ານຖາວອນ ແລະ ບໍ່ສາມາດກູ້ຄືນໄດ້. ຢືນຢັນບໍ?',
+                    style: GoogleFonts.notoSansLao(),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogCtx).pop(false),
+                      child: Text('ຍົກເລີກ', style: GoogleFonts.notoSansLao()),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.of(dialogCtx).pop(true),
+                      style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                      child: Text(
+                        'ລຶບບັນຊີ',
+                        style: GoogleFonts.notoSansLao(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed != true) return;
+              try {
+                await auth.deleteAccount();
+                if (context.mounted) {
+                  showTopRightToast(context, 'ລຶບບັນຊີແລ້ວ');
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  showTopRightToast(context, 'ລຶບບັນຊີບໍ່ສຳເລັດ ລອງໃໝ່ອີກຄັ້ງ');
+                }
+              }
+            },
+            icon: const Icon(Icons.delete_forever_outlined,
+                color: AppColors.error, size: 20),
+            label: Text(
+              'ລຶບບັນຊີ',
+              style: GoogleFonts.notoSansLao(
+                  fontWeight: FontWeight.w600, color: AppColors.error),
+            ),
+          ),
         ] else ...[
           FilledButton.icon(
             onPressed: () {
