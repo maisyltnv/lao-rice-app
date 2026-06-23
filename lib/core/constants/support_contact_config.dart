@@ -13,7 +13,7 @@ class SupportContactConfig {
   static const String defaultWhatsAppE164 = '8562055697625';
 
   static const String defaultGreeting =
-      'ສະບາຍດີ, ຂ້ອຍສົນໃຈສັ່ງເຂົ້າຈາກຮ້ານເຂົ້າສານ — ຊ່ວຍແນະນຳແລະຢືນຢັນຄຳສັ່ງໃຫ້ແດ່.';
+      'ສະບາຍດີ, ຂ້ອຍສົນໃຈສັ່ງເຂົ້າຈາກເຂົ້າສານ — ຊ່ວຍແນະນຳແລະຢືນຢັນຄຳສັ່ງໃຫ້ແດ່.';
 
   static String get whatsAppE164 {
     const override = String.fromEnvironment('WHATSAPP_NUMBER');

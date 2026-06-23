@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>ຮ້ານເຂົ້າສານ</string>
+	<string>ເຂົ້າສານ</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>ໃຊ້ຕຳແໜ່ງເພື່ອກຳນົດຈຸດສົ່ງເຂົ້າພາຍໃນນະຄອນຫຼວງວຽງຈັນ</string>
 	<key>CFBundleExecutable</key>
