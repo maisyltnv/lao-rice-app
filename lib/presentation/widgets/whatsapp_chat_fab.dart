@@ -15,7 +15,7 @@ class WhatsAppChatFab extends StatelessWidget {
     final auth = context.read<AuthProvider>();
     if (!auth.isSignedIn) return SupportContactConfig.defaultGreeting;
 
-    final parts = <String>['ສະບາຍດີ, ຂ້ອຍສົນໃຈສັ່ງເຂົ້າຈາກຮ້ານເຂົ້າສານ'];
+    final parts = <String>['ສະບາຍດີ, ຂ້ອຍສົນໃຈສັ່ງເຂົ້າຈາກເຂົ້າສານ'];
     final phone = auth.phone?.trim();
     if (phone != null && phone.isNotEmpty) {
       parts.add('ເບີ: $phone');

@@ -279,7 +279,7 @@ class _HomeHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'ຮ້ານເຂົ້າສານ',
+                        'ເຂົ້າສານ',
                         style: GoogleFonts.notoSansLao(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,

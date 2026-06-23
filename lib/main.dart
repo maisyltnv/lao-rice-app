@@ -53,7 +53,7 @@ class LaoRiceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ຮ້ານເຂົ້າສານ ວຽງຈັນ',
+      title: 'ເຂົ້າສານ ວຽງຈັນ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       home: MainShell(key: MainShell.shellKey),
